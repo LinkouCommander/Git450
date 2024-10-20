@@ -1,20 +1,3 @@
-int status;
-struct addrinfo hints;
-struct addrinfo *servinfo; // 將指向結果
-
-memset(&hints, 0, sizeof hints); // 確保 struct 為空
-hints.ai_family = AF_UNSPEC; // 不用管是 IPv4 或 IPv6
-hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
-
-// 準備好連線
-status = getaddrinfo("www.example.net", "3490", &hints, &servinfo);
-
-// servinfo 現在指向有一個或多個 struct addrinfos 的鏈結串列
-
-我一直說 serinfo 是一個鏈結串列，它有各種的位址資訊。讓我們寫一個能快速 demo 的程式，來呈現這個資訊。這個小程式 [18] 會印出你在命令列中所指定的主機之 IP address：
-/*
-** showip.c -- 顯示命令列中所給的主機 IP address
-*/
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -35,7 +18,7 @@ int main(int argc, char *argv[])
   }
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC; // AF_INET 或 AF_INET6 可以指定版本
+  hints.ai_family = AF_UNSPEC;  // 不用管是 IPv4 或 IPv6
   hints.ai_socktype = SOCK_STREAM;
 
   if ((status = getaddrinfo(argv[1], NULL, &hints, &res)) != 0) {
@@ -45,12 +28,11 @@ int main(int argc, char *argv[])
 
   printf("IP addresses for %s:\n\n", argv[1]);
 
-  for(p = res;p != NULL; p = p->ai_next) {
+  // 遍歷鏈結串列
+  for(p = res; p != NULL; p = p->ai_next) {
     void *addr;
     char *ipver;
 
-    // 取得本身位址的指標，
-    // 在 IPv4 與 IPv6 中的欄位不同：
     if (p->ai_family == AF_INET) { // IPv4
       struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
       addr = &(ipv4->sin_addr);
@@ -61,12 +43,10 @@ int main(int argc, char *argv[])
       ipver = "IPv6";
     }
 
-    // convert the IP to a string and print it:
     inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
     printf(" %s: %s\n", ipver, ipstr);
   }
 
   freeaddrinfo(res); // 釋放鏈結串列
-
   return 0;
 }
