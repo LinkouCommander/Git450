@@ -44,7 +44,7 @@ int main() {
         printf("Received message: %s\n", buffer);
 
         // 發送回應給 client
-        const char *response = "Hello from server";
+        const char *response = "Good morning my neighbors!";
         sendto(sockfd, response, strlen(response), 0, (const struct sockaddr *)&client_addr, client_len);
         printf("Response sent to client\n");
     }
