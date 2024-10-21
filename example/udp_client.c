@@ -1,10 +1,8 @@
-#include <iostream>
-#include <cstring>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 
 #define PORT 8080
 #define BUFFER_SIZE 1024
@@ -17,8 +15,8 @@ int main() {
 
     // 創建 socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        std::cerr << "Socket creation failed" << std::endl;
-        return -1;
+        perror("Socket creation failed");
+        exit(EXIT_FAILURE);
     }
 
     // 設置 server 地址
@@ -29,12 +27,12 @@ int main() {
 
     // 發送訊息給 server
     sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
-    std::cout << "Message sent to server" << std::endl;
+    printf("Message sent to server\n");
 
     // 接收來自 server 的回應
-    int n = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, nullptr, nullptr);
+    int n = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
     buffer[n] = '\0'; // 將接收的數據轉換為字串
-    std::cout << "Response from server: " << buffer << std::endl;
+    printf("Response from server: %s\n", buffer);
 
     close(sockfd);
     return 0;
