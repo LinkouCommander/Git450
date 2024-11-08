@@ -11,7 +11,7 @@ int main() {
     int sockfd;
     struct sockaddr_in serv_addr;
     char buffer[BUFFER_SIZE];
-    const char *message = "Hello from client";
+    const char *message = "Good morning my neighbors!";
 
     // 創建 socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
