@@ -9,6 +9,7 @@
 #define TCP_PORT 8180
 #define BUFFER_SIZE 1024
 
+// 設置 UDP socket
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in address;
@@ -19,12 +20,10 @@ int set_udp_socket() {
     }
 
     memset(&address, 0, sizeof(address));
-
-    address.sin_family = AF_INET; // IPv4
+    address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(UDP_PORT);
 
-    // 綁定 socket 到指定的地址和 port
     if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("UDP Bind failed");
         close(sockfd);
@@ -34,10 +33,11 @@ int set_udp_socket() {
     return sockfd;
 }
 
+// 設置 TCP socket
 int set_tcp_socket() {
     int sockfd;
     struct sockaddr_in address;
-    
+
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("TCP Socket creation failed");
         exit(EXIT_FAILURE);
@@ -53,7 +53,7 @@ int set_tcp_socket() {
         exit(EXIT_FAILURE);
     }
 
-    if(listen(sockfd, 3) < 0) {
+    if (listen(sockfd, 3) < 0) {
         perror("Listen failed");
         close(sockfd);
         exit(EXIT_FAILURE);
@@ -62,56 +62,70 @@ int set_tcp_socket() {
     return sockfd;
 }
 
+// 接受 TCP 連線
 int set_tcp_client_socket(int tcp_server_socket) {
-    struct sockaddr_in address;
-    socklen_t addr_len = sizeof(address);
-    int sockfd;
-
-    if ((sockfd = accept(tcp_server_socket, (struct sockaddr*)&address, (socklen_t*)&addr_len)) < 0) {
+    struct sockaddr_in client_addr;
+    socklen_t addr_len = sizeof(client_addr);
+    int client_socket = accept(tcp_server_socket, (struct sockaddr*)&client_addr, &addr_len);
+    if (client_socket < 0) {
         perror("TCP Accept failed");
         exit(EXIT_FAILURE);
     }
-    return sockfd;
+    return client_socket;
 }
 
 int main() {
     int udp_socket = set_udp_socket();
     int tcp_server_socket = set_tcp_socket();
 
-    struct sockaddr_in client_addr;
-    socklen_t client_len = sizeof(client_addr);
+    struct sockaddr_in udp_client_addr;
+    socklen_t udp_client_len = sizeof(udp_client_addr);
     char buffer[BUFFER_SIZE] = {0};
 
     printf("Server is running...\n");
 
-    while(1) {
+    while (1) {
+        // 等待 TCP 客戶端連線
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
         printf("TCP client connected.\n");
 
-        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
+        // 接收 TCP 客戶端的初始訊息
+        memset(buffer, 0, BUFFER_SIZE);
+        if (recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
             perror("TCP Receive failed");
-            exit(EXIT_FAILURE);
+            close(tcp_client_socket);
+            continue;
         }
-        printf("Message from client: %s\n", buffer);
+        printf("Message from TCP client: %s\n", buffer);
 
         const char *tcp_response = "Hello from server\n";
         send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
 
-        if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
-            perror("UDP Receive failed\n");
-            exit(EXIT_FAILURE);
+        // 等待 UDP 訊息
+        memset(buffer, 0, BUFFER_SIZE);
+        printf("Waiting for UDP message...\n");
+
+        if (recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_addr, &udp_client_len) < 0) {
+            perror("UDP Receive failed");
+            close(tcp_client_socket);
+            continue;
         }
-        memset(buffer, '\0', sizeof(buffer));
+
+        // 收到 UDP 訊息後回應 TCP 客戶端
         printf("Received message from UDP client: %s\n", buffer);
 
-        const char *udp_response = "Hello from server\n";
-        sendto(udp_socket, udp_response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, client_len);
+        const char *udp_response = "Message received via UDP\n";
+        sendto(udp_socket, udp_response, strlen(udp_response), 0, (struct sockaddr *)&udp_client_addr, udp_client_len);
         printf("Response sent to UDP client\n");
+
         send(tcp_client_socket, udp_response, strlen(udp_response), 0);
         printf("Response sent to TCP client\n");
 
+        // 關閉 TCP 連線
         close(tcp_client_socket);
     }
+
     close(udp_socket);
     close(tcp_server_socket);
+    return 0;
 }
