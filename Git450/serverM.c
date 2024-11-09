@@ -94,7 +94,7 @@ int main() {
         }
         printf("Message from client: %s\n", buffer);
 
-        const char *tcp_response = "Hello from server";
+        const char *tcp_response = "Hello from server\n";
         send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
 
         if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
@@ -105,7 +105,7 @@ int main() {
         printf("Received message from UDP client: %s\n", buffer);
 
         const char *udp_response = "Hello from server\n";
-        sendto(udp_socket, response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, client_len);
+        sendto(udp_socket, udp_response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, client_len);
         printf("Response sent to UDP client\n");
         send(tcp_client_socket, udp_response, strlen(udp_response), 0);
         printf("Response sent to TCP client\n");
