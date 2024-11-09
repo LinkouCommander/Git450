@@ -38,7 +38,7 @@ int set_tcp_socket() {
     int sockfd;
     struct sockaddr_in address;
     
-    if (sockfd = socket(AF_INET, SOCK_STREAM, 0) < 0) {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("TCP Socket creation failed");
         exit(EXIT_FAILURE);
     }
@@ -64,9 +64,10 @@ int set_tcp_socket() {
 
 int set_tcp_client_socket(int tcp_server_socket) {
     struct sockaddr_in address;
+    socklen_t addr_len = sizeof(address);
     int sockfd;
 
-    if ((sockfd = accept(tcp_server_socket, (struct sockaddr*)&address, sizeof(address))) < 0) {
+    if ((sockfd = accept(tcp_server_socket, (struct sockaddr*)&address, (socklen_t*)&addr_len)) < 0) {
         perror("TCP Accept failed");
         exit(EXIT_FAILURE);
     }
@@ -103,8 +104,8 @@ int main() {
         memset(buffer, '\0', sizeof(buffer));
         printf("Received message from UDP client: %s\n", buffer);
 
-        const char *udp_response = "Hello from server";
-        sendto(udp_socket, response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, &client_len);
+        const char *udp_response = "Hello from server\n";
+        sendto(udp_socket, response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, client_len);
         printf("Response sent to UDP client\n");
         send(tcp_client_socket, udp_response, strlen(udp_response), 0);
         printf("Response sent to TCP client\n");
