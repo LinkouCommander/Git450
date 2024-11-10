@@ -37,19 +37,21 @@ int main() {
     char username[100];
     char password[100];
 
+    while(1) {
+        recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        strcpy(username, buffer);
+
+        recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        strcpy(password, buffer);
+
+        // buffer[n] = '\0'; // 將接收的數據轉換為字串
+        printf("Username: %s\n Password: %s", username, password);
+    }
         // 發送訊息給 server
         // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         // printf("Message sent to server\n");
 
         // // 接收來自 server 的回應
-    recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
-    strcpy(username, buffer);
-
-    recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
-    strcpy(password, buffer);
-
-    buffer[n] = '\0'; // 將接收的數據轉換為字串
-    printf("Username: %s\n Password: %s", username, password);
 
     close(serverA_socket);
     return 0;
