@@ -109,12 +109,12 @@ int main() {
         printf("client password: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
-        // if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
-        //     perror("UDP Receive failed\n");
-        //     exit(EXIT_FAILURE);
-        // }
-        // memset(buffer, '\0', sizeof(buffer));
-        // printf("Received message from UDP client: %s\n", buffer);
+        if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
+            perror("UDP Receive failed\n");
+            exit(EXIT_FAILURE);
+        }
+        memset(buffer, 0, BUFFER_SIZE);
+        printf("Received message from UDP client: %s\n", buffer);
 
         if(strcmp(username, "guest") != 0 && strcmp(password, "guest") != 0) {
             printf("Not Guest\n");
@@ -123,6 +123,9 @@ int main() {
             // printf("Response sent to UDP client\n");
             // // send(tcp_client_socket, udp_response, strlen(udp_response), 0);
             // // printf("Response sent to TCP client\n");
+        }
+        else {
+            printf("Guest\n");
         }
 
         const char *tcp_response = "Hello TCP\n";
