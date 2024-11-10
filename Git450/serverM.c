@@ -81,16 +81,20 @@ int main() {
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
         printf("TCP client connected.\n");
 
-        // 接收 username
-        recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
+        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
+            perror("TCP Receive failed");
+            exit(EXIT_FAILURE);
+        }
         strcpy(username, buffer);
-        printf("Received username: %s\n", username);
+        printf("client username: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
-        // 接收 password
-        recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
+        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
+            perror("TCP Receive failed");
+            exit(EXIT_FAILURE);
+        }
         strcpy(password, buffer);
-        printf("Received password: %s\n", password);
+        printf("client password: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
         // 等待 UDP Client 發送初始訊息以獲取其地址
