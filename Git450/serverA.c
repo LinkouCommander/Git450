@@ -46,20 +46,20 @@ int main() {
         char password[100];
 
         // 發送訊息給 server
-        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
+        sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         printf("Message sent to server\n");
 
         // // 接收來自 server 的回應
-        // recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        // recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
         // strcpy(username, buffer);
 
-        // recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        // recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
         // strcpy(password, buffer);
 
         // buffer[n] = '\0'; // 將接收的數據轉換為字串
         // printf("Username: %s\n Password: %s", username, password);
     }
 
-    close(sockfd);
+    close(serverA_socket);
     return 0;
 }
