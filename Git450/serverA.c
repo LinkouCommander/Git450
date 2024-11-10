@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 8080
+#define UDP_PORT 8080
 #define BUFFER_SIZE 1024
 
 int set_udp_socket() {
@@ -34,6 +34,9 @@ int set_udp_socket() {
 
 int main() {
     int serverA_socket = set_udp_socket();
+    struct sockaddr_in address;
+    socklen_t addr_len = sizeof(address);
+
     const char *message = "Good morning my neighbors!";
 
     while(1) {
@@ -43,7 +46,7 @@ int main() {
         char password[100];
 
         // 發送訊息給 server
-        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&address, &addr_len);
         printf("Message sent to server\n");
 
         // // 接收來自 server 的回應
