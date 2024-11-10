@@ -9,7 +9,6 @@
 
 int set_udp_socket() {
     int sockfd;
-    struct sockaddr_in address;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("UDP Socket creation failed");
         exit(EXIT_FAILURE);
@@ -18,30 +17,27 @@ int set_udp_socket() {
 }
 
 int main() {
-    int serverA_socket = set_udp_socket();
-    struct sockaddr_in address;
-    socklen_t addr_len = sizeof(address);
+    int udp_socket = set_udp_socket();
+    struct sockaddr_in server_addr;
+    socklen_t addr_len = sizeof(server_addr);
 
-    memset(&address, 0, sizeof(address));
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr.sin_port = htons(UDP_PORT);
 
-    address.sin_family = AF_INET; // IPv4
-    address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(UDP_PORT);
-    const char *message = "Good morning my neighbors!";
+    char buffer[BUFFER_SIZE] = {0};
 
-    char buffer[BUFFER_SIZE];
-    char username[100];
-    char password[100];
-    while(1) {
-        recvfrom(serverA_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
-        // buffer[n] = '\0'; // 將接收的數據轉換為字串
-        printf("Message: %s", buffer);
+    while (1) {
+        // 接收來自 UDP Server 的訊息
+        if (recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&server_addr, &addr_len) < 0) {
+            perror("UDP Receive failed");
+            continue;
+        }
+        printf("Received message from UDP server: %s\n", buffer);
+        memset(buffer, 0, BUFFER_SIZE);
     }
-        // 發送訊息給 server
-        // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
-        // printf("Message sent to server\n");
-        // // 接收來自 server 的回應
 
-    close(serverA_socket);
+    close(udp_socket);
     return 0;
 }
