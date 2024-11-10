@@ -29,8 +29,8 @@ int main() {
     serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     // 發送訊息給 server
-    // sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
-    // printf("Message sent to server\n");
+    sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
+    printf("Message sent to server\n");
 
     // 接收來自 server 的回應
     recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
