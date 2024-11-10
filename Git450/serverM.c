@@ -104,23 +104,25 @@ int main() {
         strcpy(password, buffer);
         printf("client password: %s\n", buffer);
 
+        if(username != "guest" && password != "guest") {
+            // if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
+            //     perror("UDP Receive failed\n");
+            //     exit(EXIT_FAILURE);
+            // }
+            // memset(buffer, '\0', sizeof(buffer));
+            // printf("Received message from UDP client: %s\n", buffer);
+
+            const char *udp_response = "Hello UDP\n";
+            sendto(udp_socket, username, strlen(username), 0, (const struct sockaddr *)&client_addr, client_len);
+            sendto(udp_socket, password, strlen(password), 0, (const struct sockaddr *)&client_addr, client_len);
+            printf("Response sent to UDP client\n");
+            // send(tcp_client_socket, udp_response, strlen(udp_response), 0);
+            // printf("Response sent to TCP client\n");
+        }
+
         const char *tcp_response = "Hello TCP\n";
         send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
 
-
-
-        // if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
-        //     perror("UDP Receive failed\n");
-        //     exit(EXIT_FAILURE);
-        // }
-        // memset(buffer, '\0', sizeof(buffer));
-        // printf("Received message from UDP client: %s\n", buffer);
-
-        // const char *udp_response = "Hello UDP\n";
-        // sendto(udp_socket, udp_response, strlen(udp_response), 0, (const struct sockaddr *)&client_addr, client_len);
-        // printf("Response sent to UDP client\n");
-        // send(tcp_client_socket, udp_response, strlen(udp_response), 0);
-        // printf("Response sent to TCP client\n");
 
         close(tcp_client_socket);
     }
