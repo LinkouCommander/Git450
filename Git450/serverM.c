@@ -45,8 +45,8 @@ int set_tcp_socket() {
 int set_tcp_client_socket(int tcp_server_socket) {
     struct sockaddr_in address;
     socklen_t addr_len = sizeof(address);
-    int sockfd = accept(tcp_server_socket, (struct sockaddr*)&address, &addr_len);
-    if (sockfd < 0) {
+    int sockfd;
+    if (sockfd = accept(tcp_server_socket, (struct sockaddr*)&address, &addr_len) < 0) {
         perror("TCP Accept failed");
         exit(EXIT_FAILURE);
     }
@@ -84,22 +84,27 @@ int main() {
         recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
         strcpy(username, buffer);
         printf("Received username: %s\n", username);
+        memset(buffer, 0, BUFFER_SIZE);
 
         // 接收 password
         recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
         strcpy(password, buffer);
         printf("Received password: %s\n", password);
+        memset(buffer, 0, BUFFER_SIZE);
 
         // 等待 UDP Client 發送初始訊息以獲取其地址
         recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len);
+        memset(buffer, 0, BUFFER_SIZE);
 
         // 驗證並回覆 UDP Client
         if (strcmp(username, "guest") != 0 && strcmp(password, "guest") != 0) {
+            printf("Member?\n");
             sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&client_addr, client_len);
             sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&client_addr, client_len);
             printf("Sent response to UDP client.\n");
-        } else {
-            printf("Guest access detected.\n");
+        } 
+        else {
+            printf("Guest.\n");
         }
         close(tcp_client_socket);
     }
