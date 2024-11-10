@@ -72,9 +72,9 @@ int main() {
     address.sin_port = htons(UDP_PORT);
 
     // 綁定 socket 到指定的地址和 port
-    if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
+    if (bind(udp_socket, (const struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("UDP Bind failed");
-        close(sockfd);
+        close(udp_socket);
         exit(EXIT_FAILURE);
     }
 
