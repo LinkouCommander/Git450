@@ -20,7 +20,7 @@ int set_udp_socket() {
 int main() {
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
-    // socklen_t addr_len = sizeof(address);
+    socklen_t addr_len = sizeof(address);
 
     memset(&address, 0, sizeof(address));
 

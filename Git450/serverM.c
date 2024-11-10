@@ -57,8 +57,8 @@ int set_tcp_client_socket(int tcp_server_socket) {
 
 int main() {
     int udp_socket = set_udp_socket();
-
     struct sockaddr_in address;
+    socklen_t client_len = sizeof(address);
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET; // IPv4
     address.sin_addr.s_addr = INADDR_ANY;
@@ -78,8 +78,7 @@ int main() {
 
     while(1) {
         char buffer[BUFFER_SIZE] = {0};
-        char username[100];
-        char password[100];
+        char username[100], password[100];
         memset(buffer, 0, BUFFER_SIZE);
 
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
