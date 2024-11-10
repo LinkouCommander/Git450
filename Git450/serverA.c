@@ -16,19 +16,6 @@ int set_udp_socket() {
         exit(EXIT_FAILURE);
     }
 
-    memset(&address, 0, sizeof(address));
-
-    address.sin_family = AF_INET; // IPv4
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(UDP_PORT);
-
-    // // 綁定 socket 到指定的地址和 port
-    // if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
-    //     perror("UDP Bind failed");
-    //     close(sockfd);
-    //     exit(EXIT_FAILURE);
-    // }
-
     return sockfd;
 }
 
@@ -36,6 +23,19 @@ int main() {
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
     // socklen_t addr_len = sizeof(address);
+
+    memset(&address, 0, sizeof(address));
+
+    address.sin_family = AF_INET; // IPv4
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    address.sin_port = htons(UDP_PORT);
+
+    // 綁定 socket 到指定的地址和 port
+    // if (bind(serverA_socket, (const struct sockaddr *)&address, sizeof(address)) < 0) {
+    //     perror("UDP Bind failed");
+    //     close(serverA_socket);
+    //     exit(EXIT_FAILURE);
+    // }
 
     const char *message = "Good morning my neighbors!";
 
