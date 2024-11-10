@@ -85,6 +85,8 @@ int main() {
     printf("Server is running...\n");
 
     while(1) {
+        char username[100];
+        char password[100];
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
         printf("TCP client connected.\n");
 
@@ -92,10 +94,20 @@ int main() {
             perror("TCP Receive failed");
             exit(EXIT_FAILURE);
         }
-        printf("Message from client: %s\n", buffer);
+        strcpy(username, buffer);
+        printf("client username: %s\n", buffer);
+
+        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
+            perror("TCP Receive failed");
+            exit(EXIT_FAILURE);
+        }
+        strcpy(password, buffer);
+        printf("client password: %s\n", buffer);
 
         const char *tcp_response = "Hello TCP\n";
         send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
+
+
 
         // if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
         //     perror("UDP Receive failed\n");

@@ -30,11 +30,13 @@ int main() {
     printf("username: ");
     scanf("%s", username);
 
-    // printf("password: ");
-    // scanf("%s", password);
-
     send(sock, username, strlen(username), 0);
     
+    printf("password: ");
+    scanf("%s", password);
+
+    send(sock, password, strlen(password), 0);
+
     // 接收 server 的回應
     recv(sock, buffer, BUFFER_SIZE, 0);
     printf("Message from server: %s\n", buffer);
