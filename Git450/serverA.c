@@ -35,7 +35,7 @@ int main() {
     while (1) {
         char buffer[BUFFER_SIZE];
         recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, NULL, NULL);
-        // buffer[strlen(buffer)] = '\0';
+        buffer[strlen(buffer)] = '\0';
         printf("Received from server: %s\n", buffer);
     }
 
