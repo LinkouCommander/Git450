@@ -104,15 +104,15 @@ int main() {
         strcpy(password, buffer);
         printf("client password: %s\n", buffer);
 
-        if(strcmp(username, "guest") != 0 && strcmp(password, "guest") != 0) {
-            if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
-                perror("UDP Receive failed\n");
-                exit(EXIT_FAILURE);
-            }
-            memset(buffer, '\0', sizeof(buffer));
-            printf("Received message from UDP client: %s\n", buffer);
+        if(recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len) < 0) {
+            perror("UDP Receive failed\n");
+            exit(EXIT_FAILURE);
+        }
+        memset(buffer, '\0', sizeof(buffer));
+        printf("Received message from UDP client: %s\n", buffer);
 
-            const char *udp_response = "Hello UDP\n";
+        if(strcmp(username, "guest") != 0 && strcmp(password, "guest") != 0) {
+            printf("Not Guest\n");
             sendto(udp_socket, username, strlen(username), 0, (const struct sockaddr *)&client_addr, client_len);
             sendto(udp_socket, password, strlen(password), 0, (const struct sockaddr *)&client_addr, client_len);
             printf("Response sent to UDP client\n");
