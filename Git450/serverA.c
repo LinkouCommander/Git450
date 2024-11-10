@@ -7,40 +7,55 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
-int main() {
+int set_udp_socket() {
     int sockfd;
-    struct sockaddr_in serv_addr;
-    char buffer[BUFFER_SIZE];
-    const char *message = "Good morning my neighbors!";
+    struct sockaddr_in address;
 
-    char username[100];
-    char password[100];
-
-    // 創建 socket
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("Socket creation failed");
+        perror("UDP Socket creation failed");
         exit(EXIT_FAILURE);
     }
 
-    // 設置 server 地址
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    memset(&address, 0, sizeof(address));
 
-    // 發送訊息給 server
-    sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
-    printf("Message sent to server\n");
+    address.sin_family = AF_INET; // IPv4
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(UDP_PORT);
 
-    // 接收來自 server 的回應
-    recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
-    strcpy(username, buffer);
+    // 綁定 socket 到指定的地址和 port
+    if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("UDP Bind failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
 
-    recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
-    strcpy(password, buffer);
+    return sockfd;
+}
 
-    // buffer[n] = '\0'; // 將接收的數據轉換為字串
-    printf("Username: %s\n Password: %s", username, password);
+int main() {
+    int serverA_socket = set_udp_socket();
+    const char *message = "Good morning my neighbors!";
+
+    while(1) {
+        char buffer[BUFFER_SIZE];
+
+        char username[100];
+        char password[100];
+
+        // 發送訊息給 server
+        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&serv_addr, sizeof(serv_addr));
+        printf("Message sent to server\n");
+
+        // // 接收來自 server 的回應
+        // recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        // strcpy(username, buffer);
+
+        // recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL);
+        // strcpy(password, buffer);
+
+        // buffer[n] = '\0'; // 將接收的數據轉換為字串
+        // printf("Username: %s\n Password: %s", username, password);
+    }
 
     close(sockfd);
     return 0;
