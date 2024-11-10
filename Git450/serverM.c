@@ -76,6 +76,7 @@ int main() {
     while (1) {
         char buffer[BUFFER_SIZE];
         char username[100], password[100];
+        memset(buffer, 0, BUFFER_SIZE);
 
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
         printf("TCP client connected.\n");
