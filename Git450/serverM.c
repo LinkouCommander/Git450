@@ -18,19 +18,6 @@ int set_udp_socket() {
         exit(EXIT_FAILURE);
     }
 
-    memset(&address, 0, sizeof(address));
-
-    address.sin_family = AF_INET; // IPv4
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(UDP_PORT);
-
-    // 綁定 socket 到指定的地址和 port
-    if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
-        perror("UDP Bind failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
-
     return sockfd;
 }
 
@@ -76,6 +63,21 @@ int set_tcp_client_socket(int tcp_server_socket) {
 
 int main() {
     int udp_socket = set_udp_socket();
+
+    struct sockaddr_in address;
+    memset(&address, 0, sizeof(address));
+
+    address.sin_family = AF_INET; // IPv4
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(UDP_PORT);
+
+    // 綁定 socket 到指定的地址和 port
+    if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("UDP Bind failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
     int tcp_server_socket = set_tcp_socket();
 
     struct sockaddr_in client_addr;
