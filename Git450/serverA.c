@@ -35,7 +35,7 @@ int set_udp_socket() {
 int main() {
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
-    socklen_t addr_len = sizeof(address);
+    // socklen_t addr_len = sizeof(address);
 
     const char *message = "Good morning my neighbors!";
 
@@ -46,7 +46,7 @@ int main() {
         char password[100];
 
         // 發送訊息給 server
-        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&address, &addr_len);
+        sendto(sockfd, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         printf("Message sent to server\n");
 
         // // 接收來自 server 的回應
