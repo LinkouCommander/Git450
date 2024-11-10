@@ -94,8 +94,8 @@ int main() {
         memset(buffer, 0, BUFFER_SIZE);
 
         // 等待 UDP Client 發送初始訊息以獲取其地址
-        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len);
-        memset(buffer, 0, BUFFER_SIZE);
+        // recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&client_addr, &client_len);
+        // memset(buffer, 0, BUFFER_SIZE);
 
         // 驗證並回覆 UDP Client
         if (strcmp(username, "guest") != 0 && strcmp(password, "guest") != 0) {

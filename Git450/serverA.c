@@ -29,8 +29,8 @@ int main() {
     address.sin_port = htons(UDP_PORT);
 
     const char *message = "Hello, server!";
-    sendto(udp_socket, message, strlen(message), 0, (struct sockaddr *)&address, server_len);
-    printf("Initial message sent to server.\n");
+    // sendto(udp_socket, message, strlen(message), 0, (struct sockaddr *)&address, server_len);
+    // printf("Initial message sent to server.\n");
 
     while (1) {
         char buffer[BUFFER_SIZE];
