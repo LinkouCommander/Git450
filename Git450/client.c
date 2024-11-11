@@ -39,7 +39,7 @@ int main() {
 
     // 接收 server 的回應
     recv(sock, buffer, BUFFER_SIZE, 0);
-    printf("Message from server: %s\n", buffer);
+    printf("%s\n", buffer);
     
     // 關閉連接
     close(sock);
