@@ -5,15 +5,7 @@
 #include <arpa/inet.h>
 #include "serverA.h"
 
-#define BUFFER_SIZE 1024
-#define MAX_LINE_LENGTH 256
-
-typedef struct {
-    char UserName[100];
-    char Password[100];
-} Member;
-
-Member* add_member(Member* members, int* size, const char* UserName, const char *Password) {
+struct Member* add_member(Member* members, int* size, const char* UserName, const char *Password) {
     members = realloc(members, (*size + 1) * sizeof(Member));
     if(members == NULL) {
         perror("memory allocation failed");
@@ -99,22 +91,15 @@ int main() {
 
     printf("Server A is up and running using UDP on port %d.\n", serverA_UDP_PORT);
 
-    // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
-
     char client_username[100];
     char client_password[100];
-
-    char buffer[BUFFER_SIZE];
 
     while(1) {
         memset(&client_username, 0, sizeof(client_username));
         memset(&client_password, 0, sizeof(client_password));
-        // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         
         recvfrom(serverA_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
-        // printf("Message: %s\n", client_username);
         recvfrom(serverA_socket, client_password, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
-        // printf("Message: %s\n", client_password);
         printf("Server A received username %s and password ******\n", client_username);
 
         int authenticationCode = 0;
@@ -131,7 +116,7 @@ int main() {
             char *decoded_client_password = encoder(client_password);
             // printf("Decoded Password: %s\n", decoded_client_password);
             if(strcmp(decoded_client_password, members[idx].Password) == 0) {
-                authenticationCode = 1;
+                authenticationCode = 2;
             }
         }
         // printf("Authentication Code: %d\n", authenticationCode);

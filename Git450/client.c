@@ -8,7 +8,7 @@
 #define PORT 25048
 #define BUFFER_SIZE 1024
 
-int main() {
+int main(int argc, char *argv[]) {
     int sock = 0;
     struct sockaddr_in serv_addr;
     char buffer[BUFFER_SIZE] = {0};
@@ -27,26 +27,29 @@ int main() {
     printf("The client is up and running.\n");
     
     // 發送資料
-    char username[100];
-    char password[100];
-    printf("username: ");
-    scanf("%s", username);
+    const char* username = "";
+    const char* password = "";
+
+    if(argc > 1) username = argv[1];
+    if(argc > 2) password = argv[2];
+    // printf("username: ");
+    // scanf("%s", username);
 
     send(sock, username, strlen(username), 0);
     
-    printf("password: ");
-    scanf("%s", password);
+    // printf("password: ");
+    // scanf("%s", password);
 
     send(sock, password, strlen(password), 0);
 
     int authenticationCode;
     recv(sock, &authenticationCode, sizeof(authenticationCode), 0);
     // printf("%s\n", buffer);
-    if(authenticationCode < 0) {
-        printf("You have been granted guest access.\n");
-    }
-    else if(authenticationCode == 0) {
+    if(!authenticationCode) {
         printf("The credentials are incorrect. Please try again.\n");
+    }
+    else if(authenticationCode == 1) {
+        printf("You have been granted guest access.\n");
     }
     else {
         printf("You have been granted member access.\n");
