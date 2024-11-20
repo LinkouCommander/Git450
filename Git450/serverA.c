@@ -3,8 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "serverA.h"
 
-#define UDP_PORT 21048
 #define BUFFER_SIZE 1024
 #define MAX_LINE_LENGTH 256
 
@@ -38,7 +38,7 @@ int set_udp_socket() {
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET; // IPv4
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(UDP_PORT);
+    address.sin_port = htons(serverA_UDP_PORT);
     
     if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("Socket Bind failed");
@@ -92,16 +92,12 @@ int main() {
 
     fclose(file);
 
-    // for (int i = 0; i < size; i++) {
-    //     printf("Username: %s, Password: %s\n", members[i].UserName, members[i].Password);
-    // }
-
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
     int addr_len = sizeof(address);
-    const char *message = "Good morning my neighbors!";
+    const char *message = "gogo";
 
-    printf("Server is waiting for messages...\n");
+    printf("Server A is up and running using UDP on port %d.\n", serverA_UDP_PORT);
 
     // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
 
@@ -116,12 +112,14 @@ int main() {
         // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         
         recvfrom(serverA_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
-        printf("Message: %s\n", client_username);
-
+        // printf("Message: %s\n", client_username);
         recvfrom(serverA_socket, client_password, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
-        printf("Message: %s\n", client_password);
+        // printf("Message: %s\n", client_password);
+        printf("ServerA received username %s and password ******\n", client_username);
+
 
         int idx = -1;
+        int authenticationCode = 0;
         for(int i = 0; i < size; i++) {
             if(strcmp(client_username, members[i].UserName) == 0) {
                 idx = i;
@@ -129,15 +127,17 @@ int main() {
             }
         }
 
-        int authenticationCode = 0;
         if(idx != -1) {
             char *decoded_client_password = encoder(client_password);
-            printf("Decoded Password: %s\n", decoded_client_password);
+            // printf("Decoded Password: %s\n", decoded_client_password);
             if(strcmp(decoded_client_password, members[idx].Password) == 0) {
                 authenticationCode = 1;
             }
         }
-        printf("Authentication Code: %d\n", authenticationCode);
+        // printf("Authentication Code: %d\n", authenticationCode);
+        if(authenticationCode) printf("“Member %s has been authenticated\n", client_username);
+        else printf("The username %s or password ****** is incorrect\n", client_username);
+        
         sendto(serverA_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr*)&address, addr_len);
     }
 

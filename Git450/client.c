@@ -39,9 +39,18 @@ int main() {
 
     send(sock, password, strlen(password), 0);
 
-    // 接收 server 的回應
-    recv(sock, buffer, BUFFER_SIZE, 0);
-    printf("%s\n", buffer);
+    int authenticationCode;
+    recv(sock, authenticationCode, sizeof(authenticationCode), 0);
+    // printf("%s\n", buffer);
+    if(authenticationCode < 0) {
+        printf("You have been granted guest access.\n");
+    }
+    else if(authenticationCode == 0) {
+        printf("The credentials are incorrect. Please try again.\n");
+    }
+    else {
+        printf("“You have been granted member access.\n");
+    }
     
     // 關閉連接
     close(sock);

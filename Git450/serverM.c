@@ -73,32 +73,14 @@ int set_tcp_client_socket(int tcp_server_socket) {
 
 int main() {
     int udp_socket = set_udp_socket();
-    // struct sockaddr_in udp_server_address, udp_client_address;
-    // socklen_t udp_client_len = sizeof(udp_client_address);
 
-    // memset(&udp_server_address, 0, sizeof(udp_server_address));
-    // memset(&udp_client_address, 0, sizeof(udp_client_address));
-
-    // udp_server_address.sin_family = AF_INET; // IPv4
-    // udp_server_address.sin_addr.s_addr = INADDR_ANY;
-    // udp_server_address.sin_port = htons(serverA_UDP_PORT);
-
-    // if (bind(udp_socket, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
-    //     perror("UDP Bind failed");
-    //     close(udp_socket);
-    //     exit(EXIT_FAILURE);
-    // }
-
-    // const char *udp_message = "Greetings from serverM!";
-
-    // sendto(udp_socket, udp_message, strlen(udp_message), 0, (const struct sockaddr *)&udp_client_address, sizeof(udp_client_address));
-    printf("Message sent to serverA\n");
+    // printf("Message sent to serverA\n");
 
     int tcp_server_socket = set_tcp_socket();
     struct sockaddr_in client_addr;
     socklen_t client_len = sizeof(client_addr);
 
-    printf("Server is running...\n");
+    printf("Server M is up and running using UDP on port %d.\n", serverM_UDP_PORT);
 
     while(1) {
         char buffer[BUFFER_SIZE] = {0};
@@ -106,14 +88,14 @@ int main() {
         memset(buffer, 0, BUFFER_SIZE);
 
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
-        printf("TCP client connected.\n");
+        // printf("TCP client connected.\n");
 
         if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
             perror("TCP Receive failed");
             exit(EXIT_FAILURE);
         }
         strcpy(username, buffer);
-        printf("client username: %s\n", buffer);
+        // printf("client username: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
         if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
@@ -121,35 +103,37 @@ int main() {
             exit(EXIT_FAILURE);
         }
         strcpy(password, buffer);
-        printf("client password: %s\n", buffer);
+        // printf("client password: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
+        printf("Server M has received username %s and password ****.\n", username);
+
         if(strcmp(username, "guest") == 0 && strcmp(password, "guest") == 0) {
-            printf("Guest\n");
-            send(tcp_client_socket, "Guest Mode", strlen("Guest Mode"), 0);
+            // printf("Guest\n");
+            send(tcp_client_socket, -1, sizeof(-1), 0);
         }
         else {
-            printf("Not Guest\n");
+            // printf("Not Guest\n");
             // recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address, &udp_client_len);
             memset(buffer, 0, BUFFER_SIZE);
 
             sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
             sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
-            printf("Response sent to UDP client\n");
-            // // send(tcp_client_socket, udp_response, strlen(udp_response), 0);
-            // // printf("Response sent to TCP client\n");
+            printf("Server M has sent authentication request to Server A\n");
 
             int authenticationCode;
             recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, (socklen_t*)&udp_client_len);
-            printf("Authentication Code: %d\n", authenticationCode);
-            char authentication_message[100];
-            if(authenticationCode) {
-                sprintf(authentication_message, "Member %s has been authenticated\n", username);
-            }
-            else {
-                sprintf(authentication_message, "The username %s or password ****** is incorrect\n", username);
-            }
-            send(tcp_client_socket, authentication_message, strlen(authentication_message), 0);
+            printf("The main server has received the response from server A using UDP over %d.\n", serverA_UDP_PORT);
+            // printf("Authentication Code: %d\n", authenticationCode);
+            // char authentication_message[100];
+            // if(authenticationCode) {
+            //     sprintf(authentication_message, "Member %s has been authenticated\n", username);
+            // }
+            // else {
+            //     sprintf(authentication_message, "The username %s or password ****** is incorrect\n", username);
+            // }
+            send(tcp_client_socket, authenticationCode, sizeof(authenticationCode), 0);
+            printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
         }
         // const char *tcp_response = "Hello TCP\n";
         // send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
