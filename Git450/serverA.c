@@ -115,11 +115,11 @@ int main() {
         // printf("Message: %s\n", client_username);
         recvfrom(serverA_socket, client_password, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
         // printf("Message: %s\n", client_password);
-        printf("ServerA received username %s and password ******\n", client_username);
+        printf("Server A received username %s and password ******\n", client_username);
 
+        int authenticationCode = 0;
 
         int idx = -1;
-        int authenticationCode = 0;
         for(int i = 0; i < size; i++) {
             if(strcmp(client_username, members[i].UserName) == 0) {
                 idx = i;
@@ -135,9 +135,9 @@ int main() {
             }
         }
         // printf("Authentication Code: %d\n", authenticationCode);
-        if(authenticationCode) printf("“Member %s has been authenticated\n", client_username);
+        if(authenticationCode) printf("Member %s has been authenticated\n", client_username);
         else printf("The username %s or password ****** is incorrect\n", client_username);
-        
+            
         sendto(serverA_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr*)&address, addr_len);
     }
 

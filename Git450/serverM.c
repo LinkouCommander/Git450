@@ -108,33 +108,33 @@ int main() {
 
         printf("Server M has received username %s and password ****.\n", username);
 
+        int authenticationCode;
+
         if(strcmp(username, "guest") == 0 && strcmp(password, "guest") == 0) {
             // printf("Guest\n");
-            send(tcp_client_socket, -1, sizeof(-1), 0);
+            authenticationCode = -1;
+            // send(tcp_client_socket, -1, sizeof(-1), 0);
         }
         else {
-            // printf("Not Guest\n");
-            // recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address, &udp_client_len);
             memset(buffer, 0, BUFFER_SIZE);
 
             sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
             sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
             printf("Server M has sent authentication request to Server A\n");
 
-            int authenticationCode;
             recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, (socklen_t*)&udp_client_len);
             printf("The main server has received the response from server A using UDP over %d.\n", serverA_UDP_PORT);
-            // printf("Authentication Code: %d\n", authenticationCode);
-            // char authentication_message[100];
-            // if(authenticationCode) {
-            //     sprintf(authentication_message, "Member %s has been authenticated\n", username);
-            // }
-            // else {
-            //     sprintf(authentication_message, "The username %s or password ****** is incorrect\n", username);
-            // }
-            send(tcp_client_socket, authenticationCode, sizeof(authenticationCode), 0);
-            printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
+                // printf("Authentication Code: %d\n", authenticationCode);
+                // char authentication_message[100];
+                // if(authenticationCode) {
+                //     sprintf(authentication_message, "Member %s has been authenticated\n", username);
+                // }
+                // else {
+                //     sprintf(authentication_message, "The username %s or password ****** is incorrect\n", username);
+                // }
         }
+        send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
+        printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
         // const char *tcp_response = "Hello TCP\n";
         // send(tcp_client_socket, tcp_response, strlen(tcp_response), 0);
         close(tcp_client_socket);

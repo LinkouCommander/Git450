@@ -24,7 +24,7 @@ int main() {
     // 連接 server
     connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
-    printf("“The client is up and running.\n");
+    printf("The client is up and running.\n");
     
     // 發送資料
     char username[100];
@@ -40,7 +40,7 @@ int main() {
     send(sock, password, strlen(password), 0);
 
     int authenticationCode;
-    recv(sock, authenticationCode, sizeof(authenticationCode), 0);
+    recv(sock, &authenticationCode, sizeof(authenticationCode), 0);
     // printf("%s\n", buffer);
     if(authenticationCode < 0) {
         printf("You have been granted guest access.\n");
@@ -49,7 +49,7 @@ int main() {
         printf("The credentials are incorrect. Please try again.\n");
     }
     else {
-        printf("“You have been granted member access.\n");
+        printf("You have been granted member access.\n");
     }
     
     // 關閉連接
