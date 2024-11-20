@@ -5,17 +5,32 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define UDP_PORT 8080
-#define TCP_PORT 8180
 #define BUFFER_SIZE 1024
 
 int set_udp_socket() {
     int sockfd;
-    struct sockaddr_in address;
+    struct sockaddr_in udp_server_address;
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("UDP Socket creation failed");
         exit(EXIT_FAILURE);
     }
+
+    memset(&udp_server_address, 0, sizeof(udp_server_address));
+    memset(&udp_client_address, 0, sizeof(udp_client_address));
+
+    udp_server_address.sin_family = AF_INET; // IPv4
+    udp_server_address.sin_addr.s_addr = INADDR_ANY;
+    udp_server_address.sin_port = htons(serverM_UDP_PORT);
+
+    if (bind(udp_socket, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
+        perror("UDP Bind failed");
+        close(udp_socket);
+        exit(EXIT_FAILURE);
+    }
+
+    udp_client_address.sin_family = AF_INET;
+    udp_client_address.sin_port = htons(serverA_UDP_PORT);
+
     return sockfd;
 }
 
@@ -29,7 +44,7 @@ int set_tcp_socket() {
     }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(TCP_PORT);
+    address.sin_port = htons(serverM_TCP_PORT);
 
     if (bind(sockfd, (const struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("TCP Bind failed");
@@ -57,23 +72,23 @@ int set_tcp_client_socket(int tcp_server_socket) {
 
 int main() {
     int udp_socket = set_udp_socket();
-    struct sockaddr_in udp_server_address, udp_client_address;
-    socklen_t udp_client_len = sizeof(udp_client_address);
+    // struct sockaddr_in udp_server_address, udp_client_address;
+    // socklen_t udp_client_len = sizeof(udp_client_address);
 
-    memset(&udp_server_address, 0, sizeof(udp_server_address));
-    memset(&udp_client_address, 0, sizeof(udp_client_address));
+    // memset(&udp_server_address, 0, sizeof(udp_server_address));
+    // memset(&udp_client_address, 0, sizeof(udp_client_address));
 
-    udp_server_address.sin_family = AF_INET; // IPv4
-    udp_server_address.sin_addr.s_addr = INADDR_ANY;
-    udp_server_address.sin_port = htons(UDP_PORT);
-    // 綁定 socket 到指定的地址和 port
-    if (bind(udp_socket, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
-        perror("UDP Bind failed");
-        close(udp_socket);
-        exit(EXIT_FAILURE);
-    }
+    // udp_server_address.sin_family = AF_INET; // IPv4
+    // udp_server_address.sin_addr.s_addr = INADDR_ANY;
+    // udp_server_address.sin_port = htons(serverA_UDP_PORT);
 
-    const char *udp_message = "Greetings from serverM!";
+    // if (bind(udp_socket, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
+    //     perror("UDP Bind failed");
+    //     close(udp_socket);
+    //     exit(EXIT_FAILURE);
+    // }
+
+    // const char *udp_message = "Greetings from serverM!";
 
     // sendto(udp_socket, udp_message, strlen(udp_message), 0, (const struct sockaddr *)&udp_client_address, sizeof(udp_client_address));
     printf("Message sent to serverA\n");
@@ -114,17 +129,17 @@ int main() {
         }
         else {
             printf("Not Guest\n");
-            recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address, &udp_client_len);
+            // recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address, &udp_client_len);
             memset(buffer, 0, BUFFER_SIZE);
 
-            sendto(udp_socket, username, strlen(username), 0, (const struct sockaddr *)&udp_client_address, sizeof(udp_client_address));
-            sendto(udp_socket, password, strlen(password), 0, (const struct sockaddr *)&udp_client_address, sizeof(udp_client_address));
+            sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
+            sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
             printf("Response sent to UDP client\n");
             // // send(tcp_client_socket, udp_response, strlen(udp_response), 0);
             // // printf("Response sent to TCP client\n");
 
             int authenticationCode;
-            recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, &udp_client_len);
+            recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, (socklen_t*)&udp_client_len);
             printf("Authentication Code: %d\n", authenticationCode);
             char authentication_message[100];
             if(authenticationCode) {

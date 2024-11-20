@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define UDP_PORT 8080
+#define UDP_PORT 21048
 #define BUFFER_SIZE 1024
 #define MAX_LINE_LENGTH 256
 
@@ -107,7 +107,7 @@ int main() {
     while(1) {
         memset(&client_username, 0, sizeof(client_username));
         memset(&client_password, 0, sizeof(client_password));
-        sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
+        // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         
         recvfrom(serverA_socket, client_username, 100, 0, NULL, NULL);
         printf("Message: %s\n", client_username);

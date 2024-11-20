@@ -23,6 +23,8 @@ int main() {
     
     // 連接 server
     connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+
+    printf("“The client is up and running.\n");
     
     // 發送資料
     char username[100];
