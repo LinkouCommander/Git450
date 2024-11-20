@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#define PORT 8180
+#define PORT 25048
 #define BUFFER_SIZE 1024
 
 int main() {

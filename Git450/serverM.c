@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "serverM.h"
 
 #define BUFFER_SIZE 1024
 
@@ -22,9 +23,9 @@ int set_udp_socket() {
     udp_server_address.sin_addr.s_addr = INADDR_ANY;
     udp_server_address.sin_port = htons(serverM_UDP_PORT);
 
-    if (bind(udp_socket, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
+    if (bind(sockfd, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
         perror("UDP Bind failed");
-        close(udp_socket);
+        close(serverM_UDP_PORT);
         exit(EXIT_FAILURE);
     }
 

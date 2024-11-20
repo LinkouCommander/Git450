@@ -34,6 +34,18 @@ int set_udp_socket() {
         perror("UDP Socket creation failed");
         exit(EXIT_FAILURE);
     }
+
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET; // IPv4
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    address.sin_port = htons(UDP_PORT);
+    
+    if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
+        perror("Socket Bind failed");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
     return sockfd;
 }
 
@@ -86,14 +98,8 @@ int main() {
 
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
-    socklen_t addr_len = sizeof(address);
+    int addr_len = sizeof(address);
     const char *message = "Good morning my neighbors!";
-
-    memset(&address, 0, sizeof(address));
-
-    address.sin_family = AF_INET; // IPv4
-    address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(UDP_PORT);
 
     printf("Server is waiting for messages...\n");
 
@@ -109,10 +115,10 @@ int main() {
         memset(&client_password, 0, sizeof(client_password));
         // sendto(serverA_socket, message, strlen(message), 0, (const struct sockaddr *)&address, sizeof(address));
         
-        recvfrom(serverA_socket, client_username, 100, 0, NULL, NULL);
+        recvfrom(serverA_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
         printf("Message: %s\n", client_username);
 
-        recvfrom(serverA_socket, client_password, 100, 0, NULL, NULL);
+        recvfrom(serverA_socket, client_password, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
         printf("Message: %s\n", client_password);
 
         int idx = -1;
@@ -132,7 +138,7 @@ int main() {
             }
         }
         printf("Authentication Code: %d\n", authenticationCode);
-        sendto(serverA_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&address, sizeof(address));
+        sendto(serverA_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr*)&address, addr_len);
     }
 
     free(members);
