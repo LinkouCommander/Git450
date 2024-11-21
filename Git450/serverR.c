@@ -13,102 +13,18 @@
 
 #define TABLE_SIZE 2001
 
-typedef struct {
-    char *key;
-    char **value;
-    size_t node_size;
-    struct Node *next;
-} Node;
-
-typedef struct {
-    Node **table;
-    size_t size;
-} UnorderedMap;
-
-size_t hash_string(const char *key) {
-    int hash = 0;
-    while(*key) {
-        hash = (hash * 31) + *key;
-        *key++;
-    }
-    return hash % TABLE_SIZE;
-}
-
-UnorderedMap *create_map() {
-    UnorderedMap* map = (UnorderedMap*)malloc(sizeof(UnorderedMap));
-    map->size = size;
-    map->table = (Node**)malloc(size * sizeof(Node*));
-
-    for(size_t i = 0; i < TABLE_SIZE; i++) {
-        map->table[i] = NULL;
-    }
-    return map;
-}
-
-void insert(UnorderedMap *map, const char *key, const char *value) {
-    size_t idx = hash_string(key);
-    Node *node = map->table[idx];
-    Node *prev = NULL;
-
-    while(node) {
-        if(strcmp(node->key, key) == 0) {
-            for(size_t i = 0; i < node->node_size; i++) {
-                if(strcmp(node->value, value) == 0) {
-                    return;
-                }
-            }
-            node->value = realloc(node->value, (node->node_size + 1) * sizeof(node->value));
-            // strcpy(node->value[node->node_size], value);
-            node->value[node->node_size] = strdup(value);
-            node->node_size++;
-            return;
-        }
-        prev = node;
-        node = node->next;
+UserFile *read_file(UserFile *userfiles, int *size, const char *username, const char *filename) {
+    userfiles = realloc(userfiles, (*size + 1) * sizeof(userfiles));
+    if(!userfiles) {
+        perror("memory allocation failed");
+        exit(EXIT_FAILURE);
     }
 
-    Node *new_node = (Node*)malloc(sizeof(Node));
-    new_entry->key.str = strdup(key);
-    new_node->value = (char**)malloc(sizeof(char*));
-    new_node->value[0] = strdup(value);
-    new_node->node_size = 1;
-    new_node->next = NULL;
+    strcpy(userfiles[*size].username, username);
+    strcpy(userfiles[*size].filename, filename);
+    (*size)++;
 
-    if(prev) prev->next = new_node;
-    else map->table[idx] = new_node;
-}
-
-void print_hashmap(HashMap* hashmap) {
-    for (size_t i = 0; i < hashmap->size; i++) {
-        HashEntry* entry = hashmap->table[i];
-        while (entry) {
-            printf("Key: %s\n", entry->key.str);
-            printf("Values: ");
-            for (size_t j = 0; j < entry->value_count; j++) {
-                printf("%s ", entry->values[j].str);
-            }
-            printf("\n");
-            entry = entry->next;
-        }
-    }
-}
-
-void free_hashmap(HashMap* hashmap) {
-    for (size_t i = 0; i < hashmap->size; i++) {
-        HashEntry* entry = hashmap->table[i];
-        while (entry) {
-            free(entry->key.str);
-            for (size_t j = 0; j < entry->value_count; j++) {
-                free(entry->values[j].str);
-            }
-            free(entry->values);
-            HashEntry* temp = entry;
-            entry = entry->next;
-            free(temp);
-        }
-    }
-    free(hashmap->table);
-    free(hashmap);
+    return userfiles;
 }
 
 int set_udp_socket() {
@@ -147,9 +63,9 @@ int main() {
     fgets(row, sizeof(row), file);
 
     int size = 0;
-    UnorderedMap* mp = create_map();
+    UserFile* fileinfo = NULL;
     while(fscanf(file, "%s %s", username, filename) != EOF) {
-        insert(mp, username, filename);
+        fileinfo = read_file(fileinfo, &size, username, filename);
     }
 
     fclose(file);
@@ -165,8 +81,12 @@ int main() {
     while(1) {
         memset(&client_username, 0, sizeof(client_username));
         recvfrom(serverR_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
-        print_hashmap(mp);
+        
+        for(int i = 0; i < size; i++) {
+            if(strcmp(client_username, fileinfo[i].username) == 0) {
+                printf("%s\n", fileinfo[i].filename);
+            }
+        }
     }
-    free_hashmap(mp);
     return 0;
 }

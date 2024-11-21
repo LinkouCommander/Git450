@@ -33,7 +33,7 @@ int set_udp_socket() {
     
     for(int i = 0; i < 3; i++) {
         memset(&udp_client_address[i], 0, sizeof(udp_client_address[i]));
-        udp_client_address.sin_family = AF_INET;
+        udp_client_address[i].sin_family = AF_INET;
         switch (i) {
         case 0:
             udp_client_address[i].sin_port = htons(serverA_UDP_PORT);
@@ -143,7 +143,7 @@ int main() {
                 char target[50];
                 char lookup[] = "lookup";
 
-                recv(tcp_client_socket, command_code, BUFFER_SIZE, 0);
+                recv(tcp_client_socket, &command_code, sizeof(command_code), 0);
 
                 recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
                 strcpy(target, buffer);

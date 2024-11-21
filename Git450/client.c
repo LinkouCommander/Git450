@@ -56,15 +56,15 @@ int main(int argc, char *argv[]) {
             char command[50];
             char target[50];
             char lookup[] = "lookup";
-            scanf("%s, %s", command, target);
+            scanf("%s %s", command, target);
 
             if(strcmp(command, lookup) == 0) {
                 command_code = 1;
                 if(strlen(target) == 0) {
-                    printf("Error: Username is required. Please specify a username to lookup.\n")
+                    printf("Error: Username is required. Please specify a username to lookup.\n");
                 }
                 else {
-                    send(sock, command_code, sizeof(command_code), 0);
+                    send(sock, &command_code, sizeof(command_code), 0);
                     usleep(50000);
                     send(sock, target, strlen(target), 0);
                     printf("Guest sent a lookup request to the main server.\n");
@@ -76,13 +76,12 @@ int main(int argc, char *argv[]) {
                 printf("Guests can only use the lookup command\n");
             }
 
-            printf("—--Start a new request—--");
+            printf("—--Start a new request—--\n");
         }
     }
     else {
         printf("You have been granted member access.\n");
     }
-    printf()
     
 
     // 關閉連接
