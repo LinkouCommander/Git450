@@ -97,8 +97,8 @@ int main() {
 
     printf("Server M is up and running using UDP on port %d.\n", serverM_UDP_PORT);
 
+    char buffer[BUFFER_SIZE] = {0};
     while(1) {
-        char buffer[BUFFER_SIZE] = {0};
         char username[100], password[100];
         memset(buffer, 0, BUFFER_SIZE);
 
@@ -152,6 +152,26 @@ int main() {
                 if(command_code == 1) {
                     printf("The main server has received a lookup request from Guest to lookup %s’s repository using TCP over port %d.\n", target, serverM_TCP_PORT);
                     sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    printf("The main server has sent the lookup request to server R.\n");
+
+                    int n;
+                    char **fileArr = malloc(n * sizeof(char*));
+                    
+                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    printf("The main server has received the response from server R using UDP over %s\n", serverM_UDP_PORT);
+                    for(int i = 0; i < n; i++) {
+                        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                        fileArr[i] = strdup(buffer);
+                        memset(buffer, 0, BUFFER_SIZE);
+                    }
+
+                    send(tcp_client_socket, &n, sizeof(n), 0);
+                    for(int i = 0; i < n; i++) {
+                        usleep(50000);
+                        send(tcp_client_socket, fileArr[i], sizeof(fileArr[i]), 0);
+                        free(arr[i]);
+                    }
+                    printf("The main server has sent the response to the client.\n");
                 }
             }
         }

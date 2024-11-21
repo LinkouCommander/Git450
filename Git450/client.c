@@ -69,7 +69,14 @@ int main(int argc, char *argv[]) {
                     send(sock, target, strlen(target), 0);
                     printf("Guest sent a lookup request to the main server.\n");
 
-
+                    int n;
+                    recv(sock, &n, sizeof(n), 0);
+                    printf("The client received the response from the main server using TCP over port %s\n", PORT);
+                    for(int i = 0; i < n; i++) {
+                        recv(sock, &buffer, BUFFER_SIZE, 0);
+                        printf("%s\n", buffer);
+                        memset(buffer, 0, BUFFER_SIZE);
+                    }
                 }
             }
             else {

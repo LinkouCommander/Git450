@@ -82,10 +82,21 @@ int main() {
         memset(&client_username, 0, sizeof(client_username));
         recvfrom(serverR_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
         
+        int n = 0;
+        char **arr = NULL;
         for(int i = 0; i < size; i++) {
             if(strcmp(client_username, fileinfo[i].username) == 0) {
-                printf("%s\n", fileinfo[i].filename);
+                realloc(arr, (n + 1) * sizeof(char*));
+                arr[n] = strdup(fileinfo[i].filename);
+                n++;
             }
+        }
+
+        sendto(serverR_socket, &n, sizeof(n), 0, (struct sockaddr*)&address, addr_len);
+        for(int i = 0; i < n; i++) {
+            usleep(50000);
+            sendto(serverR_socket, arr[i], sizeof(arr[i]), 0, (struct sockaddr*)&address, addr_len);
+            free(arr[i]);
         }
     }
     return 0;
