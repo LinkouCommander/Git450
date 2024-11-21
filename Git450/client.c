@@ -9,6 +9,8 @@
 #define BUFFER_SIZE 1024
 
 int main(int argc, char *argv[]) {
+    // printf("%s\n", argv[1]);
+    // printf("%s\n", argv[2]);
     int sock = 0;
     struct sockaddr_in serv_addr;
     char buffer[BUFFER_SIZE] = {0};
@@ -27,19 +29,15 @@ int main(int argc, char *argv[]) {
     printf("The client is up and running.\n");
     
     // 發送資料
-    const char* username = "";
-    const char* password = "";
+    const char* username = " ";
+    const char* password = " ";
 
     if(argc > 1) username = argv[1];
+    // printf("%s\n", username);
     if(argc > 2) password = argv[2];
-    // printf("username: ");
-    // scanf("%s", username);
-
+    // printf("%s\n", password);
     send(sock, username, strlen(username), 0);
-    
-    // printf("password: ");
-    // scanf("%s", password);
-
+    usleep(50000);  
     send(sock, password, strlen(password), 0);
 
     int authenticationCode;

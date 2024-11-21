@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-const int serverA_UDP_PORT = 21048;
+#define serverA_UDP_PORT 21048
 
 struct Member {
     char UserName[100];

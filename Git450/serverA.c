@@ -5,8 +5,8 @@
 #include <arpa/inet.h>
 #include "serverA.h"
 
-struct Member* add_member(Member* members, int* size, const char* UserName, const char *Password) {
-    members = realloc(members, (*size + 1) * sizeof(Member));
+struct Member* add_member(struct Member* members, int* size, const char* UserName, const char *Password) {
+    members = realloc(members, (*size + 1) * sizeof(members));
     if(members == NULL) {
         perror("memory allocation failed");
         exit(EXIT_FAILURE);
@@ -74,7 +74,7 @@ int main() {
     char password[100];
     char line[256];
     int size = 0;
-    Member* members = NULL;
+    struct Member* members = NULL;
 
     fgets(line, sizeof(line), file);
 

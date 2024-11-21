@@ -90,30 +90,24 @@ int main() {
         int tcp_client_socket = set_tcp_client_socket(tcp_server_socket);
         // printf("TCP client connected.\n");
 
-        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
-            perror("TCP Receive failed");
-            exit(EXIT_FAILURE);
-        }
+        recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
         strcpy(username, buffer);
         // printf("client username: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
 
-        if(recv(tcp_client_socket, buffer, BUFFER_SIZE, 0) < 0) {
-            perror("TCP Receive failed");
-            exit(EXIT_FAILURE);
-        }
+        recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
         strcpy(password, buffer);
         // printf("client password: %s\n", buffer);
         memset(buffer, 0, BUFFER_SIZE);
-
-        printf("Server M has received username %s and password ****.\n", username);
 
         int authenticationCode;
 
         if(strcmp(username, "guest") == 0 && strcmp(password, "guest") == 0) {
             authenticationCode = 1;
+            send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
         }
         else {
+            printf("Server M has received username %s and password ****.\n", username);
             memset(buffer, 0, BUFFER_SIZE);
 
             sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
@@ -122,9 +116,10 @@ int main() {
 
             recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, (socklen_t*)&udp_client_len);
             printf("The main server has received the response from server A using UDP over %d.\n", serverA_UDP_PORT);
+
+            send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
+            printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
         }
-        send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
-        printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
 
         close(tcp_client_socket);
     }
