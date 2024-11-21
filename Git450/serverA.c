@@ -1,13 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
 #include "serverA.h"
 
-struct Member* add_member(struct Member* members, int* size, const char* UserName, const char *Password) {
+Member *add_member(Member *members, int *size, const char *UserName, const char *Password) {
     members = realloc(members, (*size + 1) * sizeof(members));
-    if(members == NULL) {
+    if(!members) {
         perror("memory allocation failed");
         exit(EXIT_FAILURE);
     }
@@ -72,12 +78,12 @@ int main() {
 
     char username[100];
     char password[100];
-    char line[256];
+    
+    char row[1];
+    fgets(row, sizeof(row), file);
+
     int size = 0;
-    struct Member* members = NULL;
-
-    fgets(line, sizeof(line), file);
-
+    Member* members = NULL;
     while(fscanf(file, "%s %s", username, password) != EOF) {
         members = add_member(members, &size, username, password);
     }
@@ -87,7 +93,6 @@ int main() {
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
     int addr_len = sizeof(address);
-    const char *message = "gogo";
 
     printf("Server A is up and running using UDP on port %d.\n", serverA_UDP_PORT);
 

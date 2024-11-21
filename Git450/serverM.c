@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <sys/wait.h>
 #include "serverM.h"
-
-#define BUFFER_SIZE 1024
 
 int set_udp_socket() {
     int sockfd;
@@ -17,7 +20,6 @@ int set_udp_socket() {
     }
 
     memset(&udp_server_address, 0, sizeof(udp_server_address));
-    memset(&udp_client_address, 0, sizeof(udp_client_address));
 
     udp_server_address.sin_family = AF_INET; // IPv4
     udp_server_address.sin_addr.s_addr = INADDR_ANY;
@@ -28,9 +30,22 @@ int set_udp_socket() {
         close(serverM_UDP_PORT);
         exit(EXIT_FAILURE);
     }
-
-    udp_client_address.sin_family = AF_INET;
-    udp_client_address.sin_port = htons(serverA_UDP_PORT);
+    
+    for(int i = 0; i < 3; i++) {
+        memset(&udp_client_address[i], 0, sizeof(udp_client_address[i]));
+        udp_client_address.sin_family = AF_INET;
+        switch (i) {
+        case 0:
+            udp_client_address[i].sin_port = htons(serverA_UDP_PORT);
+            break;
+        case 1:
+            udp_client_address[i].sin_port = htons(serverR_UDP_PORT);
+            break;
+        case 2:
+            udp_client_address[i].sin_port = htons(serverD_UDP_PORT);
+            break;
+        }
+    }
 
     return sockfd;
 }
@@ -110,16 +125,37 @@ int main() {
             printf("Server M has received username %s and password ****.\n", username);
             memset(buffer, 0, BUFFER_SIZE);
 
-            sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
-            sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&udp_client_address, udp_client_len);
+            sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address[0], udp_client_len);
+            sendto(udp_socket, password, strlen(password), 0, (struct sockaddr *)&udp_client_address[0], udp_client_len);
             printf("Server M has sent authentication request to Server A\n");
 
-            recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address, (socklen_t*)&udp_client_len);
+            recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address[0], (socklen_t*)&udp_client_len);
             printf("The main server has received the response from server A using UDP over %d.\n", serverA_UDP_PORT);
 
             send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
             printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
         }
+
+        if(authenticationCode == 0) continue;
+        else if(authenticationCode == 1) {
+            while(1) {
+                int command_code = 0;
+                char target[50];
+                char lookup[] = "lookup";
+
+                recv(tcp_client_socket, command_code, BUFFER_SIZE, 0);
+
+                recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
+                strcpy(target, buffer);
+                memset(buffer, 0, BUFFER_SIZE);
+
+                if(command_code == 1) {
+                    printf("The main server has received a lookup request from Guest to lookup %s’s repository using TCP over port %d.\n", target, serverM_TCP_PORT);
+                    sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                }
+            }
+        }
+
 
         close(tcp_client_socket);
     }

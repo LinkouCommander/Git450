@@ -37,22 +37,54 @@ int main(int argc, char *argv[]) {
     if(argc > 2) password = argv[2];
     // printf("%s\n", password);
     send(sock, username, strlen(username), 0);
-    usleep(50000);  
+    usleep(50000);
     send(sock, password, strlen(password), 0);
 
     int authenticationCode;
     recv(sock, &authenticationCode, sizeof(authenticationCode), 0);
-    // printf("%s\n", buffer);
     if(!authenticationCode) {
         printf("The credentials are incorrect. Please try again.\n");
+        exit(EXIT_FAILURE);
     }
     else if(authenticationCode == 1) {
         printf("You have been granted guest access.\n");
+
+        while(1) {
+            printf("Please enter the command: <lookup <username>>\n");
+
+            int command_code = 0;
+            char command[50];
+            char target[50];
+            char lookup[] = "lookup";
+            scanf("%s, %s", command, target);
+
+            if(strcmp(command, lookup) == 0) {
+                command_code = 1;
+                if(strlen(target) == 0) {
+                    printf("Error: Username is required. Please specify a username to lookup.\n")
+                }
+                else {
+                    send(sock, command_code, sizeof(command_code), 0);
+                    usleep(50000);
+                    send(sock, target, strlen(target), 0);
+                    printf("Guest sent a lookup request to the main server.\n");
+
+
+                }
+            }
+            else {
+                printf("Guests can only use the lookup command\n");
+            }
+
+            printf("—--Start a new request—--");
+        }
     }
     else {
         printf("You have been granted member access.\n");
     }
+    printf()
     
+
     // 關閉連接
     close(sock);
     return 0;
