@@ -11,20 +11,6 @@
 #include <sys/wait.h>
 #include "serverA.h"
 
-Member *add_member(Member *members, int *size, const char *UserName, const char *Password) {
-    members = realloc(members, (*size + 1) * sizeof(members));
-    if(!members) {
-        perror("memory allocation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    strcpy(members[*size].UserName, UserName);
-    strcpy(members[*size].Password, Password);
-    (*size)++;
-
-    return members;
-}
-
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in address;
@@ -70,26 +56,36 @@ char* encoder(char *password) {
 }
 
 int main() {
+    char buffer1[BUFFER_SIZE] = {0};
+    char buffer2[BUFFER_SIZE] = {0};
+
+    // get member info
     FILE *file = fopen("members.txt", "r");
     if(file == NULL) {
         perror("Can't open members.txt");
         return 1;
     }
 
-    char username[100];
-    char password[100];
+    char **memberInfo = NULL;
+    char **passwordInfo = NULL;
     
     char row[1];
     fgets(row, sizeof(row), file);
 
-    int size = 0;
-    Member* members = NULL;
-    while(fscanf(file, "%s %s", username, password) != EOF) {
-        members = add_member(members, &size, username, password);
-    }
+    int member_size = 0;
+    while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
+        memberInfo = realloc(memberInfo, (member_size + 1) * sizeof(char*));
+        memberInfo[member_size] = strdup(buffer1);
+        memset(buffer1, 0, BUFFER_SIZE);
 
+        passwordInfo = realloc(passwordInfo, (member_size + 1) * sizeof(char*));
+        passwordInfo[member_size] = strdup(buffer2);
+        memset(buffer2, 0, BUFFER_SIZE);
+        member_size++;
+    }
     fclose(file);
 
+    // setup socket
     int serverA_socket = set_udp_socket();
     struct sockaddr_in address;
     int addr_len = sizeof(address);
@@ -110,8 +106,8 @@ int main() {
         int authenticationCode = 0;
 
         int idx = -1;
-        for(int i = 0; i < size; i++) {
-            if(strcmp(client_username, members[i].UserName) == 0) {
+        for(int i = 0; i < member_size; i++) {
+            if(strcmp(client_username, memberInfo[i]) == 0) {
                 idx = i;
                 break;
             }
@@ -120,7 +116,7 @@ int main() {
         if(idx != -1) {
             char *decoded_client_password = encoder(client_password);
             // printf("Decoded Password: %s\n", decoded_client_password);
-            if(strcmp(decoded_client_password, members[idx].Password) == 0) {
+            if(strcmp(decoded_client_password, passwordInfo[idx]) == 0) {
                 authenticationCode = 2;
             }
         }
@@ -131,7 +127,9 @@ int main() {
         sendto(serverA_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr*)&address, addr_len);
     }
 
-    free(members);
+    free(memberInfo);
+    free(passwordInfo);
+    
     close(serverA_socket);
     return 0;
 }

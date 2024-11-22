@@ -154,6 +154,9 @@ int main() {
 
                 if(command_code == 1) {
                     printf("The main server has received a lookup request from Guest to lookup %s's repository using TCP over port %d.\n", target, serverM_TCP_PORT);
+                    
+                    sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
                     sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     printf("The main server has sent the lookup request to server R.\n");
 
@@ -197,7 +200,7 @@ int main() {
                 if(command_code == 1) {
                     printf("The main server has received a lookup request from %s to lookup %s's repository using TCP over port %d.\n", username, target, serverM_TCP_PORT);
                     
-                    sendto(udp_socket, command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     usleep(50000);
                     sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     printf("The main server has sent the lookup request to server R.\n");

@@ -11,22 +11,6 @@
 #include <sys/wait.h>
 #include "serverR.h"
 
-#define TABLE_SIZE 2001
-
-UserFile *read_file(UserFile *userfiles, int *size, const char *username, const char *filename) {
-    userfiles = realloc(userfiles, (*size + 1) * sizeof(userfiles));
-    if(!userfiles) {
-        perror("memory allocation failed");
-        exit(EXIT_FAILURE);
-    }
-
-    strcpy(userfiles[*size].username, username);
-    strcpy(userfiles[*size].filename, filename);
-    (*size)++;
-
-    return userfiles;
-}
-
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in address;
@@ -50,7 +34,8 @@ int set_udp_socket() {
 }
 
 int main() {
-    char buffer[BUFFER_SIZE] = {0};
+    char buffer1[BUFFER_SIZE] = {0};
+    char buffer2[BUFFER_SIZE] = {0};
 
     // get file info
     FILE *file = fopen("filenames.txt", "r");
@@ -59,23 +44,28 @@ int main() {
         return 1;
     }
 
-    char username[100];
-    char filename[100];
+    char **fileUser = NULL;
+    char **fileInfo = NULL;
     
     char row[1];
     fgets(row, sizeof(row), file);
 
-    int size = 0;
-    UserFile* fileInfo = NULL;
-    while(fscanf(file, "%s %s", username, filename) != EOF) {
-        fileInfo = read_file(fileInfo, &size, username, filename);
-    }
+    int file_size = 0;
+    while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
+        fileUser = realloc(fileUser, (file_size + 1) * sizeof(char*));
+        fileUser[file_size] = strdup(buffer1);
+        memset(buffer1, 0, BUFFER_SIZE);
 
+        fileInfo = realloc(fileInfo, (file_size + 1) * sizeof(char*));
+        fileInfo[file_size] = strdup(buffer2);
+        memset(buffer2, 0, BUFFER_SIZE);
+        file_size++;
+    }
     fclose(file);
 
     // get member info
-    FILE *file = fopen("members.txt", "r");
-    if(file == NULL) {
+    FILE *memberfile = fopen("members.txt", "r");
+    if(memberfile == NULL) {
         perror("Can't open members.txt");
         return 1;
     }
@@ -83,16 +73,17 @@ int main() {
     char **memberInfo = NULL;
     
     memset(row, 0, sizeof(row));
-    fgets(row, sizeof(row), file);
+    fgets(row, sizeof(row), memberfile);
 
-    int memberInfo_size = 0;
-    while(fscanf(file, "%s", buffer) != EOF) {
-        memberInfo = realloc(memberInfo, (memberInfo_size + 1) * sizeof(char*));
-        memberInfo[memberInfo_size] = strdup(buffer);
-        memset(buffer, 0, BUFFER_SIZE);
+    int member_size = 0;
+    while(fscanf(memberfile, "%s %s", buffer1, buffer2) != EOF) {
+        memberInfo = realloc(memberInfo, (member_size + 1) * sizeof(char*));
+        memberInfo[member_size] = strdup(buffer1);
+        memset(buffer1, 0, BUFFER_SIZE);
+        memset(buffer2, 0, BUFFER_SIZE);
+        member_size++;
     }
-
-    fclose(file);
+    fclose(memberfile);
 
     // setup socket
     int serverR_socket = set_udp_socket();
@@ -101,20 +92,20 @@ int main() {
 
     printf("Server R is up and running using UDP on port %d.\n", serverR_UDP_PORT);
 
-    char client_username[100];
 
     while(1) {
-        memset(&client_username, 0, sizeof(client_username));
         int command_code;
-        recvfrom(serverR_socket, command_code, sizeof(command_code), 0, (struct sockaddr*)&address, &addr_len);
+        recvfrom(serverR_socket, &command_code, sizeof(command_code), 0, (struct sockaddr*)&address, &addr_len);
         if(command_code == 1) {
             printf("Server R has received a lookup request from the main server.\n");
 
-            recvfrom(serverR_socket, client_username, 100, 0, (struct sockaddr*)&address, (socklen_t*)&addr_len);
+            char client_username[100];
+            memset(&client_username, 0, sizeof(client_username));
+            recvfrom(serverR_socket, client_username, sizeof(client_username), 0, (struct sockaddr*)&address, &addr_len);
             
             int lookup_code = -1;
-            for(int i = 0; i < memberInfo_size; i++) {
-                if(strcmp(client_username, fileInfo[i].username) == 0) {
+            for(int i = 0; i < member_size; i++) {
+                if(strcmp(client_username, memberInfo[i]) == 0) {
                     lookup_code = 0;
                     break;
                 }
@@ -125,11 +116,12 @@ int main() {
             }
 
             char **arr = NULL;
-            for(int i = 0; i < size; i++) {
-                if(strcmp(client_username, fileInfo[i].username) == 0) {
+            for(int i = 0; i < file_size; i++) {
+                if(strcmp(client_username, fileUser[i]) == 0) {
                     arr = realloc(arr, (lookup_code + 1) * sizeof(char*));
-                    arr[lookup_code] = strdup(fileInfo[i].filename);
-                    n++;
+                    arr[lookup_code] = strdup(fileInfo[i]);
+                    // printf("row %d: %s\n", i, arr[lookup_code]);
+                    lookup_code++;
                 }
             }
 
@@ -144,5 +136,12 @@ int main() {
             printf("Server R has finished sending the response to the main server.\n");
         }
     }
+
+    free(fileUser);
+    free(fileInfo);
+    free(memberInfo);
+
+    close(serverR_socket);
+
     return 0;
 }

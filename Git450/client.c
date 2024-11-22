@@ -23,7 +23,7 @@ void read_command(char *command, char *target) {
     }
 }
 
-void lookup_op(int sock, char *clientname, char *target) {
+void lookup_op(int sock, const char *clientname, char *target) {
     char lookup_buffer[BUFFER_SIZE] = {0};
     int command_code = 1;
 
@@ -38,15 +38,16 @@ void lookup_op(int sock, char *clientname, char *target) {
 
         int n;
         recv(sock, &n, sizeof(n), 0);
-        printf("The client received the response from the main server using TCP over port %d\n", PORT);
-        
+        printf("The client received the response from the main server using TCP over port %d\n\n", PORT);
+        // printf("n = %d\n", n);
+
         if(n < 0) {
             printf("%s does not exist. Please try again.\n", target);
-            continue;
+            return;
         }
         else if(n == 0) {
             printf("Empty repository.\n");
-            continue;
+            return;
         }
         
         for(int i = 0; i < n; i++) {
@@ -54,6 +55,7 @@ void lookup_op(int sock, char *clientname, char *target) {
             printf("%s\n", lookup_buffer);
             memset(lookup_buffer, 0, BUFFER_SIZE);
         }
+        // printf("...\n");
     }
 }
 
@@ -116,7 +118,7 @@ int main(int argc, char *argv[]) {
             else {
                 printf("Guests can only use the lookup command\n");
             }
-            printf("—--Start a new request—--\n");
+            printf("\n---Start a new request---\n");
         }
     }
     else {
@@ -129,14 +131,14 @@ int main(int argc, char *argv[]) {
             memset(command, 0, 50);
             memset(target, 0, 50);
 
-            printf("Please enter the command: \n<lookup <username>> \n<push <filename>> \n<remove <filename>> \n<deploy> \n<log>");
+            printf("Please enter the command: \n<lookup <username>> \n<push <filename>> \n<remove <filename>> \n<deploy> \n<log>\n");
             read_command(command, target);
             // printf("%s\n", command);
             // printf("%s\n", target);
 
             if(strcmp(command, "lookup") == 0) {
                 if(strlen(target) == 0) {
-                    target = strcpy(username);
+                    strcpy(target, username);
                     printf("Username is not specified. Will lookup %s.\n", username);
                 }
                 lookup_op(sock, username, target);
@@ -144,7 +146,7 @@ int main(int argc, char *argv[]) {
             else {
                 printf("Wrong command\n");
             }
-            printf("—--Start a new request—--\n");
+            printf("\n---Start a new request---\n");
         }
     }
     
