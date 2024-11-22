@@ -86,7 +86,7 @@ int main() {
         char **arr = NULL;
         for(int i = 0; i < size; i++) {
             if(strcmp(client_username, fileinfo[i].username) == 0) {
-                realloc(arr, (n + 1) * sizeof(char*));
+                arr = realloc(arr, (n + 1) * sizeof(char*));
                 arr[n] = strdup(fileinfo[i].filename);
                 n++;
             }
@@ -95,7 +95,8 @@ int main() {
         sendto(serverR_socket, &n, sizeof(n), 0, (struct sockaddr*)&address, addr_len);
         for(int i = 0; i < n; i++) {
             usleep(50000);
-            sendto(serverR_socket, arr[i], sizeof(arr[i]), 0, (struct sockaddr*)&address, addr_len);
+            sendto(serverR_socket, arr[i], strlen(arr[i]), 0, (struct sockaddr*)&address, addr_len);
+            printf("%s\n", arr[i]);
             free(arr[i]);
         }
     }

@@ -50,15 +50,28 @@ int main(int argc, char *argv[]) {
         printf("You have been granted guest access.\n");
 
         while(1) {
-            printf("Please enter the command: <lookup <username>>\n");
-
             int command_code = 0;
+            char input[100];
             char command[50];
             char target[50];
-            char lookup[] = "lookup";
-            scanf("%s %s", command, target);
+            // char lookup[] = "lookup";
+            memset(input, 0, 100);
+            memset(command, 0, 50);
+            memset(target, 0, 50);
 
-            if(strcmp(command, lookup) == 0) {
+            printf("Please enter the command: <lookup <username>>\n");
+            if(fgets(input, sizeof(input), stdin)) {
+                input[strcspn(input, "\n")] = '\0';
+                
+                if(sscanf(input, "%s %s", command, target) == 1) {
+                    strcpy(target, "");
+                }
+            }
+
+            // printf("%s\n", command);
+            // printf("%s\n", target);
+
+            if(strcmp(command, "lookup") == 0) {
                 command_code = 1;
                 if(strlen(target) == 0) {
                     printf("Error: Username is required. Please specify a username to lookup.\n");
@@ -71,7 +84,7 @@ int main(int argc, char *argv[]) {
 
                     int n;
                     recv(sock, &n, sizeof(n), 0);
-                    printf("The client received the response from the main server using TCP over port %s\n", PORT);
+                    printf("The client received the response from the main server using TCP over port %d\n", PORT);
                     for(int i = 0; i < n; i++) {
                         recv(sock, &buffer, BUFFER_SIZE, 0);
                         printf("%s\n", buffer);

@@ -155,21 +155,22 @@ int main() {
                     printf("The main server has sent the lookup request to server R.\n");
 
                     int n;
-                    char **fileArr = malloc(n * sizeof(char*));
+                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    printf("The main server has received the response from server R using UDP over %d\n", serverM_UDP_PORT);
                     
-                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
-                    printf("The main server has received the response from server R using UDP over %s\n", serverM_UDP_PORT);
+                    char **fileArr = malloc(n * sizeof(char*));
                     for(int i = 0; i < n; i++) {
-                        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
                         fileArr[i] = strdup(buffer);
                         memset(buffer, 0, BUFFER_SIZE);
+                        printf("%s\n", fileArr[i]);
                     }
-
+                    
                     send(tcp_client_socket, &n, sizeof(n), 0);
                     for(int i = 0; i < n; i++) {
                         usleep(50000);
-                        send(tcp_client_socket, fileArr[i], sizeof(fileArr[i]), 0);
-                        free(arr[i]);
+                        send(tcp_client_socket, fileArr[i], strlen(fileArr[i]), 0);
+                        free(fileArr[i]);
                     }
                     printf("The main server has sent the response to the client.\n");
                 }
