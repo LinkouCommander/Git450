@@ -143,14 +143,17 @@ int main() {
                 char target[50];
                 char lookup[] = "lookup";
 
-                recv(tcp_client_socket, &command_code, sizeof(command_code), 0);
+                int debug_code;
+                if (debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0) <= 0) {
+                    break;
+                }
 
                 recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
                 strcpy(target, buffer);
                 memset(buffer, 0, BUFFER_SIZE);
 
                 if(command_code == 1) {
-                    printf("The main server has received a lookup request from Guest to lookup %s’s repository using TCP over port %d.\n", target, serverM_TCP_PORT);
+                    printf("The main server has received a lookup request from Guest to lookup %s's repository using TCP over port %d.\n", target, serverM_TCP_PORT);
                     sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     printf("The main server has sent the lookup request to server R.\n");
 
@@ -163,7 +166,57 @@ int main() {
                         recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
                         fileArr[i] = strdup(buffer);
                         memset(buffer, 0, BUFFER_SIZE);
-                        printf("%s\n", fileArr[i]);
+                        // printf("%s\n", fileArr[i]);
+                    }
+                    
+                    send(tcp_client_socket, &n, sizeof(n), 0);
+                    for(int i = 0; i < n; i++) {
+                        usleep(50000);
+                        send(tcp_client_socket, fileArr[i], strlen(fileArr[i]), 0);
+                        free(fileArr[i]);
+                    }
+                    printf("The main server has sent the response to the client.\n");
+                }
+            }
+        }
+        else {
+            while(1) {
+                int command_code = 0;
+                char target[50];
+                char lookup[] = "lookup";
+
+                int debug_code;
+                if (debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0) <= 0) {
+                    break;
+                }
+
+                recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
+                strcpy(target, buffer);
+                memset(buffer, 0, BUFFER_SIZE);
+
+                if(command_code == 1) {
+                    printf("The main server has received a lookup request from %s to lookup %s's repository using TCP over port %d.\n", username, target, serverM_TCP_PORT);
+                    
+                    sendto(udp_socket, command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    printf("The main server has sent the lookup request to server R.\n");
+                    
+                    int n;
+                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    printf("The main server has received the response from server R using UDP over %d\n", serverM_UDP_PORT);
+                    
+                    if(n == -1 || n == 0) {
+                        send(tcp_client_socket, &n, sizeof(n), 0);
+                        continue;
+                    }
+
+                    char **fileArr = malloc(n * sizeof(char*));
+                    for(int i = 0; i < n; i++) {
+                        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                        fileArr[i] = strdup(buffer);
+                        memset(buffer, 0, BUFFER_SIZE);
+                        // printf("%s\n", fileArr[i]);
                     }
                     
                     send(tcp_client_socket, &n, sizeof(n), 0);

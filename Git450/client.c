@@ -8,6 +8,55 @@
 #define PORT 25048
 #define BUFFER_SIZE 1024
 
+void read_command(char *command, char *target) {
+    char input[100];
+    if(fgets(input, sizeof(input), stdin)) {
+        input[strcspn(input, "\n")] = '\0';
+                
+        if(sscanf(input, "%s %s", command, target) == 1) {
+            strcpy(target, "");
+        }
+    }
+    else {
+        strcpy(command, "");
+        strcpy(target, "");
+    }
+}
+
+void lookup_op(int sock, char *clientname, char *target) {
+    char lookup_buffer[BUFFER_SIZE] = {0};
+    int command_code = 1;
+
+    if(strlen(target) == 0) {
+        printf("Error: Username is required. Please specify a username to lookup.\n");
+    }
+    else {
+        send(sock, &command_code, sizeof(command_code), 0);
+        usleep(50000);
+        send(sock, target, strlen(target), 0);
+        printf("%s sent a lookup request to the main server.\n", clientname);
+
+        int n;
+        recv(sock, &n, sizeof(n), 0);
+        printf("The client received the response from the main server using TCP over port %d\n", PORT);
+        
+        if(n < 0) {
+            printf("%s does not exist. Please try again.\n", target);
+            continue;
+        }
+        else if(n == 0) {
+            printf("Empty repository.\n");
+            continue;
+        }
+        
+        for(int i = 0; i < n; i++) {
+            recv(sock, &lookup_buffer, BUFFER_SIZE, 0);
+            printf("%s\n", lookup_buffer);
+            memset(lookup_buffer, 0, BUFFER_SIZE);
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     // printf("%s\n", argv[1]);
     // printf("%s\n", argv[2]);
@@ -50,57 +99,53 @@ int main(int argc, char *argv[]) {
         printf("You have been granted guest access.\n");
 
         while(1) {
-            int command_code = 0;
-            char input[100];
             char command[50];
             char target[50];
             // char lookup[] = "lookup";
-            memset(input, 0, 100);
             memset(command, 0, 50);
             memset(target, 0, 50);
 
             printf("Please enter the command: <lookup <username>>\n");
-            if(fgets(input, sizeof(input), stdin)) {
-                input[strcspn(input, "\n")] = '\0';
-                
-                if(sscanf(input, "%s %s", command, target) == 1) {
-                    strcpy(target, "");
-                }
-            }
-
+            read_command(command, target);
             // printf("%s\n", command);
             // printf("%s\n", target);
 
             if(strcmp(command, "lookup") == 0) {
-                command_code = 1;
-                if(strlen(target) == 0) {
-                    printf("Error: Username is required. Please specify a username to lookup.\n");
-                }
-                else {
-                    send(sock, &command_code, sizeof(command_code), 0);
-                    usleep(50000);
-                    send(sock, target, strlen(target), 0);
-                    printf("Guest sent a lookup request to the main server.\n");
-
-                    int n;
-                    recv(sock, &n, sizeof(n), 0);
-                    printf("The client received the response from the main server using TCP over port %d\n", PORT);
-                    for(int i = 0; i < n; i++) {
-                        recv(sock, &buffer, BUFFER_SIZE, 0);
-                        printf("%s\n", buffer);
-                        memset(buffer, 0, BUFFER_SIZE);
-                    }
-                }
+                lookup_op(sock, "Guest", target);
             }
             else {
                 printf("Guests can only use the lookup command\n");
             }
-
             printf("—--Start a new request—--\n");
         }
     }
     else {
         printf("You have been granted member access.\n");
+
+        while(1) {
+            char command[50];
+            char target[50];
+            // char lookup[] = "lookup";
+            memset(command, 0, 50);
+            memset(target, 0, 50);
+
+            printf("Please enter the command: \n<lookup <username>> \n<push <filename>> \n<remove <filename>> \n<deploy> \n<log>");
+            read_command(command, target);
+            // printf("%s\n", command);
+            // printf("%s\n", target);
+
+            if(strcmp(command, "lookup") == 0) {
+                if(strlen(target) == 0) {
+                    target = strcpy(username);
+                    printf("Username is not specified. Will lookup %s.\n", username);
+                }
+                lookup_op(sock, username, target);
+            }
+            else {
+                printf("Wrong command\n");
+            }
+            printf("—--Start a new request—--\n");
+        }
     }
     
 

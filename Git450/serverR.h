@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #define serverR_UDP_PORT 22048
+#define BUFFER_SIZE 1024
 
 typedef struct {
     char username[100];
