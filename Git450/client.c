@@ -4,9 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-
-#define PORT 25048
-#define BUFFER_SIZE 1024
+#include "client.h"
 
 void read_command(char *command, char *target) {
     char input[100];
@@ -29,33 +27,92 @@ void lookup_op(int sock, const char *clientname, char *target) {
 
     if(strlen(target) == 0) {
         printf("Error: Username is required. Please specify a username to lookup.\n");
+        return;
     }
-    else {
-        send(sock, &command_code, sizeof(command_code), 0);
-        usleep(50000);
-        send(sock, target, strlen(target), 0);
-        printf("%s sent a lookup request to the main server.\n", clientname);
 
-        int n;
-        recv(sock, &n, sizeof(n), 0);
-        printf("The client received the response from the main server using TCP over port %d\n\n", PORT);
-        // printf("n = %d\n", n);
+    send(sock, &command_code, sizeof(command_code), 0);
+    usleep(50000);
+    send(sock, target, strlen(target), 0);
+    printf("%s sent a lookup request to the main server.\n", clientname);
 
-        if(n < 0) {
-            printf("%s does not exist. Please try again.\n", target);
-            return;
-        }
-        else if(n == 0) {
-            printf("Empty repository.\n");
-            return;
-        }
+    int response_code;
+    recv(sock, &response_code, sizeof(response_code), 0);
+    printf("The client received the response from the main server using TCP over port %d\n\n", serverM_TCP_PORT);
+    // printf("n = %d\n", n);
+
+    if(response_code < 0) {
+        printf("%s does not exist. Please try again.\n", target);
+        return;
+    }
+    
+    if(response_code == 0) {
+        printf("Empty repository.\n");
+        return;
+    }
         
-        for(int i = 0; i < n; i++) {
-            recv(sock, &lookup_buffer, BUFFER_SIZE, 0);
-            printf("%s\n", lookup_buffer);
-            memset(lookup_buffer, 0, BUFFER_SIZE);
+    int n = response_code;
+    for(int i = 0; i < n; i++) {
+        recv(sock, &lookup_buffer, BUFFER_SIZE, 0);
+        printf("%s\n", lookup_buffer);
+        memset(lookup_buffer, 0, BUFFER_SIZE);
+    }
+    // printf("...\n");
+}
+
+int file_exists(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if(file) {
+        fclose(filename);
+        return 1;
+    }
+    return 0;
+}
+
+void push_op(int sock, const char *clientname, const char *target) {
+    char push_buffer[BUFFER_SIZE] = {0};
+    int command_code = 2;
+
+    if(strlen(target) == 0) {
+        printf("Error: Filename is required. Please specify a filename to push.\n");
+        return;
+    }
+
+    if(file_exists(target) == 0) {
+        printf("Error: Invalid file: %s", target);
+        return;
+    }
+
+    send(sock, &command_code, sizeof(command_code), 0);
+    usleep(50000);
+    send(sock, target, strlen(target), 0);
+
+    int response_code;
+    recv(sock, &response_code, sizeof(response_code), 0);
+    if(!response_code) {
+        printf("%s pushed successfully\n", target);
+    } 
+    else {
+        printf("%s exists in %s's repository, do you want to overwrite (Y/N)?", target, clientname);
+        
+        char overwrite_input;
+        while(1) {
+            scanf("%c", &overwrite_input);
+            overwrite_input = tolower(overwrite_input);
+
+            if(overwrite_input == 'y' || overwrite_input == 'n') break;
+            else printf("Invalid input, please try again.\n");
         }
-        // printf("...\n");
+
+        int overwrite_code;
+        if(overwrite_input == 'y') {
+            overwrite_code = 1;
+            printf("%s pushed successfully.\n", target);
+        }
+        else {
+            overwrite_code = 0;
+            printf("%s was not pushed successfully.\n", target);
+        }
+        send(sock, &overwrite_code, sizeof(overwrite_code), 0);
     }
 }
 
@@ -71,7 +128,7 @@ int main(int argc, char *argv[]) {
     
     // 設置 server 地址和端口
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_port = htons(serverM_TCP_PORT);
     inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
     
     // 連接 server
@@ -143,6 +200,12 @@ int main(int argc, char *argv[]) {
                 }
                 lookup_op(sock, username, target);
             }
+            else if(strcmp(command, "push") == 0) {
+                push_op(sock, username, target);
+            }
+            else if(strcmp(command, "deploy") == 0) {}
+            else if(strcmp(command, "remove") == 0) {}
+            else if(strcmp(command, "log") == 0) {}
             else {
                 printf("Wrong command\n");
             }

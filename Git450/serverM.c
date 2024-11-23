@@ -141,7 +141,6 @@ int main() {
             while(1) {
                 int command_code = 0;
                 char target[50];
-                char lookup[] = "lookup";
 
                 int debug_code;
                 if (debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0) <= 0) {
@@ -205,15 +204,16 @@ int main() {
                     sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     printf("The main server has sent the lookup request to server R.\n");
                     
-                    int n;
-                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    int response_code;
+                    recvfrom(udp_socket, &response_code, sizeof(response_code), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
                     printf("The main server has received the response from server R using UDP over %d\n", serverM_UDP_PORT);
                     
-                    if(n == -1 || n == 0) {
-                        send(tcp_client_socket, &n, sizeof(n), 0);
+                    if(response_code == -1 || response_code == 0) {
+                        send(tcp_client_socket, &response_code, sizeof(response_code), 0);
                         continue;
                     }
-
+                    
+                    int n = response_code;
                     char **fileArr = malloc(n * sizeof(char*));
                     for(int i = 0; i < n; i++) {
                         recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
@@ -229,6 +229,40 @@ int main() {
                         free(fileArr[i]);
                     }
                     printf("The main server has sent the response to the client.\n");
+                }
+                else if(command_code == 2) {
+                    printf("The main server has received a push request from %s, using TCP over port %d.", username, serverM_TCP_PORT);
+
+                    sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    printf("The main server has sent the push request to server R.\n");
+
+                    int response_code;
+                    recvfrom(udp_socket, &response_code, sizeof(response_code), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    if(!response_code) {
+                        printf("The main server has received the response from server R using UDP over %d\n", serverM_UDP_PORT);
+                        send(tcp_client_socket, &response_code, sizeof(response_code), 0);
+                        printf("The main server has sent the response to the client.\n")
+                    }
+                    else {
+                        printf("The main server has received the response from server R using UDP over %d, asking for overwrite confirmation\n", serverM_UDP_PORT);
+                        send(tcp_client_socket, &response_code, sizeof(response_code), 0);
+                        printf("The main server has sent the overwrite confirmation request to the client.\n");
+
+                        int overwrite_code;
+                        if(debug_code = recv(tcp_client_socket, &overwrite_code, sizeof(overwrite_code), 0) <= 0) {
+                            int fail_code = -1;
+                            sendto(udp_socket, &fail_code, sizeof(fail_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                            break;
+                        }
+                        printf("The main server has received the overwrite confirmation response from %s using TCP over port %d\n", username, serverM_TCP_PORT);
+
+                        sendto(udp_socket, &overwrite_code, sizeof(overwrite_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                        printf("The main server has sent the overwrite confirmation response to server R.\n");
+                    }
                 }
             }
         }

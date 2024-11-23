@@ -11,6 +11,16 @@
 #include <sys/wait.h>
 #include "serverR.h"
 
+void file_write(const char *username, const char *filename) {
+    FILE *push_file = fopen("filenames.txt", "a");
+    if(!push_file) {
+        perror("Can't open filenames.txt");
+        return 1;
+    }
+    // fprintf(push_file, "%s %s\n", username, filename);
+    printf("%s %s\n", username, filename);
+}
+
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in address;
@@ -36,32 +46,6 @@ int set_udp_socket() {
 int main() {
     char buffer1[BUFFER_SIZE] = {0};
     char buffer2[BUFFER_SIZE] = {0};
-
-    // get file info
-    FILE *file = fopen("filenames.txt", "r");
-    if(file == NULL) {
-        perror("Can't open filenames.txt");
-        return 1;
-    }
-
-    char **fileUser = NULL;
-    char **fileInfo = NULL;
-    
-    char row[1];
-    fgets(row, sizeof(row), file);
-
-    int file_size = 0;
-    while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
-        fileUser = realloc(fileUser, (file_size + 1) * sizeof(char*));
-        fileUser[file_size] = strdup(buffer1);
-        memset(buffer1, 0, BUFFER_SIZE);
-
-        fileInfo = realloc(fileInfo, (file_size + 1) * sizeof(char*));
-        fileInfo[file_size] = strdup(buffer2);
-        memset(buffer2, 0, BUFFER_SIZE);
-        file_size++;
-    }
-    fclose(file);
 
     // get member info
     FILE *memberfile = fopen("members.txt", "r");
@@ -94,6 +78,33 @@ int main() {
 
 
     while(1) {
+        // get file info
+        FILE *file = fopen("filenames.txt", "r");
+        if(!file) {
+            perror("Can't open filenames.txt");
+            return 1;
+        }
+
+        char **fileUser = NULL;
+        char **fileInfo = NULL;
+        
+        char row[1];
+        fgets(row, sizeof(row), file);
+
+        int file_size = 0;
+        while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
+            fileUser = realloc(fileUser, (file_size + 1) * sizeof(char*));
+            fileUser[file_size] = strdup(buffer1);
+            memset(buffer1, 0, BUFFER_SIZE);
+
+            fileInfo = realloc(fileInfo, (file_size + 1) * sizeof(char*));
+            fileInfo[file_size] = strdup(buffer2);
+            memset(buffer2, 0, BUFFER_SIZE);
+            file_size++;
+        }
+        fclose(file);
+
+        // receive command
         int command_code;
         recvfrom(serverR_socket, &command_code, sizeof(command_code), 0, (struct sockaddr*)&address, &addr_len);
         if(command_code == 1) {
@@ -135,10 +146,48 @@ int main() {
 
             printf("Server R has finished sending the response to the main server.\n");
         }
+        else if(command_code == 2) {
+            printf("Server R has received a push request from the main server");
+
+            char client_username[100];
+            memset(&client_username, 0, sizeof(client_username));
+            recvfrom(serverR_socket, client_username, sizeof(client_username), 0, (struct sockaddr*)&address, &addr_len);
+            
+            char client_filename[100];
+            memset(&client_filename, 0, sizeof(client_filename));
+            recvfrom(serverR_socket, client_filename, sizeof(client_filename), 0, (struct sockaddr*)&address, &addr_len);
+            
+            int response_code = 0;
+            for(int i = 0; i < file_size; i++) {
+                if(strcmp(client_username, fileUser[i]) == 0 && strcmp(client_filename, fileInfo[i]) == 0) {
+                    response_code = 1;
+                    break;
+                }
+            }
+
+            sendto(serverR_socket, &response_code, sizeof(response_code), 0, (struct sockaddr*)&address, addr_len);
+            if(!response_code) {
+                file_write(client_username, client_filename);
+                printf("%s uploaded successfully\n", client_filename);
+            }
+            else {
+                printf("%s exists in %s's repository; requesting overwrite confirmation.\n", client_filename, client_username);
+
+                int overwrite_code;
+                recvfrom(serverR_socket, &overwrite_code, sizeof(overwrite_code), 0, (struct sockaddr*)&address, &addr_len);
+
+                if(overwrite_code == 1) {
+                    printf("User requested overwrite; overwrite successful.\n");
+                }
+                else if(overwrite_code == 0) {
+                    printf("Overwrite denied\n");
+                }
+            }
+        }
+        free(fileUser);
+        free(fileInfo);
     }
 
-    free(fileUser);
-    free(fileInfo);
     free(memberInfo);
 
     close(serverR_socket);
