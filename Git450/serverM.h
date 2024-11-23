@@ -8,6 +8,15 @@
 #define serverM_TCP_PORT 25048
 
 #define BUFFER_SIZE 1024
+#define LOG_SIZE 1024
+
+typedef struct {
+    char username[100];
+    char command[100];
+    char target[100];
+} Command;
+
+
 
 struct sockaddr_in udp_client_address[3];
 int udp_client_len = sizeof(udp_client_address[0]);

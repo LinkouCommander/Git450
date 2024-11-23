@@ -87,9 +87,15 @@ int set_tcp_client_socket(int tcp_server_socket) {
 }
 
 int main() {
-    int udp_socket = set_udp_socket();
+    int cur_size = 0;
+    Command *logs = malloc(cur_size * sizeof(Command));
+    if (logs == NULL) {
+        perror("Failed to allocate memory");
+        return 1;
+    }
+    
 
-    // printf("Message sent to serverA\n");
+    int udp_socket = set_udp_socket();
 
     int tcp_server_socket = set_tcp_socket();
     struct sockaddr_in client_addr;
@@ -185,6 +191,7 @@ int main() {
             while(1) {
                 int command_code = 0;
                 char target[50];
+                const char *commands[] = {"", "lookup", "push", "deploy", "remove", "log"};
 
                 int debug_code;
                 if ((debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0)) <= 0) {
@@ -194,6 +201,19 @@ int main() {
                 recv(tcp_client_socket, buffer, BUFFER_SIZE, 0);
                 strcpy(target, buffer);
                 memset(buffer, 0, BUFFER_SIZE);
+
+                logs = realloc(logs, (cur_size + 1) * sizeof(Command));
+                if (logs == NULL) {
+                    perror("Failed to reallocate memory");
+                    return 1;
+                }
+
+                strcpy(logs[cur_size].username, username);
+                strcpy(logs[cur_size].command, commands[command_code]);
+                if(strcmp(target, "trash") == 0) strcpy(logs[cur_size].target, "");
+                else strcpy(logs[cur_size].target, target);
+
+                cur_size++;
 
                 if(command_code == 1) {
                     printf("The main server has received a lookup request from %s to lookup %s's repository using TCP over port %d.\n", username, target, serverM_TCP_PORT);
@@ -318,6 +338,16 @@ int main() {
                     recvfrom(udp_socket, &response_code, sizeof(response_code), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
                     printf("The main server has received confirmation of the remove request done by the server R.\n");
                     send(tcp_client_socket, &response_code, sizeof(response_code), 0);
+                }
+                else if(command_code == 5) {
+                    printf("The main server has received a log request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
+
+                    for(int i = 0; i < cur_size; i++) {
+                        if(strcmp(logs[i].username, username) == 0) {
+                            printf("%d. %s %s\n", i, logs[i].command, logs[i].target);
+                        }
+                    }
+
                 }
             }
         }
