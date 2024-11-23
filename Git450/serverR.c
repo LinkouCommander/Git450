@@ -11,8 +11,8 @@
 #include <sys/wait.h>
 #include "serverR.h"
 
-void file_write(const char *username, const char *filename) {
-    FILE *push_file = fopen("filenames.txt", "a");
+void file_write(const char* username, const char* filename) {
+    FILE* push_file = fopen("filenames.txt", "a");
     if(!push_file) {
         perror("Can't open filenames.txt");
         exit(EXIT_FAILURE);
@@ -21,6 +21,33 @@ void file_write(const char *username, const char *filename) {
     // printf("%s %s\n", username, filename);
 
     fclose(push_file);
+}
+
+void delete_line(const char **fileUser, const char **fileInfo, const int size, const char* row, int line_to_delete) {
+    FILE* temp = fopen("temp.txt", "w");
+    if(!temp) {
+        perror("Can't open temp.txt");
+        exit(EXIT_FAILURE);
+    }
+
+    fput(row, temp);
+    fprintf(temp, "\n");
+    for(int i = 0; i < size; i++) {
+        if(i != line_to_delete) {
+            fprintf(temp, "%s %s\n", fileUser[i], fileInfo[i]);
+        }
+    }
+
+    fclose(temp);
+
+    // if(remove("filename.txt") != 0) {
+    //     perror("Error deleting original file");
+    //     return;
+    // }
+    // if(rename("temp.txt", "filename.txt") != 0) {
+    //     perror("Error renaming temporary file");
+    //     return;
+    // }
 }
 
 int set_udp_socket() {
@@ -187,6 +214,35 @@ int main() {
                 }
             }
         }
+        else if(command_code == 4) {
+            printf("Server R has received a remove request from the main server.\n");
+
+            char client_username[100];
+            memset(&client_username, 0, sizeof(client_username));
+            recvfrom(serverR_socket, client_username, sizeof(client_username), 0, (struct sockaddr*)&address, &addr_len);
+            
+            char client_filename[100];
+            memset(&client_filename, 0, sizeof(client_filename));
+            recvfrom(serverR_socket, client_filename, sizeof(client_filename), 0, (struct sockaddr*)&address, &addr_len);
+
+            int response_code = 0;
+            int line_to_delete;
+            for(int i = 0; i < file_size; i++) {
+                if(strcmp(client_username, fileUser[i]) == 0 && strcmp(client_filename, fileInfo[i]) == 0) {
+                    response_code = 1;
+                    line_to_delete = i;
+                    break;
+                }
+            }
+
+            if(response_code == 1) {
+                sendto(serverR_socket, &response_code, sizeof(response_code), 0, (struct sockaddr*)&address, addr_len);
+                continue;
+            }
+            delete_line(fileUser, fileInfo, file_size, row, line_to_delete);
+            sendto(serverR_socket, &response_code, sizeof(response_code), 0, (struct sockaddr*)&address, addr_len);
+        }
+
         free(fileUser);
         free(fileInfo);
     }

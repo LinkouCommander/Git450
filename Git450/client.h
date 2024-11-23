@@ -6,3 +6,4 @@
 
 void read_command(char *command, char *target);
 void lookup_op(int sock, const char *clientname, char *target);
+void remove_op(int sock, const char *clientname, const char *target);

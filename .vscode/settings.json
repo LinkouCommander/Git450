@@ -3,6 +3,7 @@
         "unistd.h": "c",
         "stdio.h": "c",
         "type_traits": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "typeinfo": "c"
     }
 }

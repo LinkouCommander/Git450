@@ -122,6 +122,25 @@ void push_op(int sock, const char *clientname, const char *target) {
     }
 }
 
+void remove_op(int sock, const char *clientname, const char *target) {
+    char push_buffer[BUFFER_SIZE] = {0};
+    int command_code = 4;
+
+    send(sock, &command_code, sizeof(command_code), 0);
+    usleep(50000);
+    send(sock, target, strlen(target), 0);
+    printf("%s sent a remove request to the main server\n", clientname);
+
+    int response_code;
+    recv(sock, &response_code, sizeof(response_code), 0);
+    if(!response_code) {
+        printf("The remove request was successful.\n");
+    }
+    else {
+        printf("The remove request failed.\n");
+    }
+}
+
 int main(int argc, char *argv[]) {
     // printf("%s\n", argv[1]);
     // printf("%s\n", argv[2]);
@@ -210,7 +229,9 @@ int main(int argc, char *argv[]) {
                 push_op(sock, username, target);
             }
             else if(strcmp(command, "deploy") == 0) {}
-            else if(strcmp(command, "remove") == 0) {}
+            else if(strcmp(command, "remove") == 0) {
+                remove_op(sock, username, target);
+            }
             else if(strcmp(command, "log") == 0) {}
             else {
                 printf("Wrong command\n");

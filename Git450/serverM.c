@@ -232,7 +232,7 @@ int main() {
                     printf("The main server has sent the response to the client.\n");
                 }
                 else if(command_code == 2) {
-                    printf("The main server has received a push request from %s, using TCP over port %d.", username, serverM_TCP_PORT);
+                    printf("The main server has received a push request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
 
                     sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                     usleep(50000);
@@ -264,6 +264,20 @@ int main() {
                         sendto(udp_socket, &overwrite_code, sizeof(overwrite_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                         printf("The main server has sent the overwrite confirmation response to server R.\n");
                     }
+                }
+                else if(command_code == 4) {
+                    printf("The main server has received a remove request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
+                    
+                    sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, target, strlen(target), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+
+                    int response_code;
+                    recvfrom(udp_socket, &response_code, sizeof(response_code), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    printf("The main server has received confirmation of the remove request done by the server R.\n");
+                    send(tcp_client_socket, &response_code, sizeof(response_code), 0);
                 }
             }
         }
