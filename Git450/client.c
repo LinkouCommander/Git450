@@ -122,8 +122,27 @@ void push_op(int sock, const char *clientname, const char *target) {
     }
 }
 
+void deploy_op(int sock, const char *clientname) {
+    char deploy_buffer[BUFFER_SIZE] = {0};
+    int command_code = 3;
+
+    send(sock, &command_code, sizeof(command_code), 0);
+    usleep(50000);
+    printf("%s sent a deploy request to the main server\n", clientname);
+
+    int response_code;
+    recv(sock, &response_code, sizeof(response_code), 0);
+    printf("The client received the response from the main server using TCP over port %d. The following files in his/her repository have been deployed.\n\n", serverM_TCP_PORT);
+        
+    int n = response_code;
+    for(int i = 0; i < n; i++) {
+        recv(sock, &deploy_buffer, BUFFER_SIZE, 0);
+        printf("%s\n", deploy_buffer);
+        memset(deploy_buffer, 0, BUFFER_SIZE);
+    }
+}
+
 void remove_op(int sock, const char *clientname, const char *target) {
-    char push_buffer[BUFFER_SIZE] = {0};
     int command_code = 4;
 
     send(sock, &command_code, sizeof(command_code), 0);
@@ -228,7 +247,9 @@ int main(int argc, char *argv[]) {
             else if(strcmp(command, "push") == 0) {
                 push_op(sock, username, target);
             }
-            else if(strcmp(command, "deploy") == 0) {}
+            else if(strcmp(command, "deploy") == 0) {
+                deploy(sock, username);
+            }
             else if(strcmp(command, "remove") == 0) {
                 remove_op(sock, username, target);
             }

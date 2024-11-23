@@ -215,6 +215,33 @@ int main() {
                 }
             }
         }
+        else if(command_code == 3) {
+            printf("Server R has received a deploy request from the main server.\n");
+
+            char client_username[100];
+            memset(&client_username, 0, sizeof(client_username));
+            recvfrom(serverR_socket, client_username, sizeof(client_username), 0, (struct sockaddr*)&address, &addr_len);
+ 
+            int deploy_code = 0;
+            char **arr = NULL;
+            for(int i = 0; i < file_size; i++) {
+                if(strcmp(client_username, fileUser[i]) == 0) {
+                    arr = realloc(arr, (deploy_code + 1) * sizeof(char*));
+                    arr[deploy_code] = strdup(fileInfo[i]);
+                    // printf("row %d: %s\n", i, arr[lookup_code]);
+                    deploy_code++;
+                }
+            }
+
+            sendto(serverR_socket, &deploy_code, sizeof(deploy_code), 0, (struct sockaddr*)&address, addr_len);
+            for(int i = 0; i < deploy_code; i++) {
+                usleep(50000);
+                sendto(serverR_socket, arr[i], strlen(arr[i]), 0, (struct sockaddr*)&address, addr_len);
+                // printf("%s\n", arr[i]);
+                free(arr[i]);
+            }
+            printf("Server R has finished sending the response to the main server.\n");
+        }
         else if(command_code == 4) {
             printf("Server R has received a remove request from the main server.\n");
 

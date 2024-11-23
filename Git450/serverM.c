@@ -265,6 +265,47 @@ int main() {
                         printf("The main server has sent the overwrite confirmation response to server R.\n");
                     }
                 }
+                else if(command_code == 3) {
+                    printf("The main server has received a deploy request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
+                    
+                    sendto(udp_socket, &command_code, sizeof(command_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
+                    printf("The main server has sent the deploy request to server R.\n");
+
+                    int n;
+                    recvfrom(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                    
+                    char **fileArr = malloc(n * sizeof(char*));
+                    for(int i = 0; i < n; i++) {
+                        recvfrom(udp_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&udp_client_address[1], &udp_client_len);
+                        fileArr[i] = strdup(buffer);
+                        memset(buffer, 0, BUFFER_SIZE);
+                        // printf("%s\n", fileArr[i]);
+                    }
+                    printf("The main server received the deploy response from server R.\n");
+                    
+                    sendto(udp_socket, &n, sizeof(n), 0, (struct sockaddr *)&udp_client_address[2], udp_client_len);
+                    usleep(50000);
+                    sendto(udp_socket, username, strlen(username), 0, (struct sockaddr *)&udp_client_address[2], udp_client_len);
+                    for(int i = 0; i < n; i++) {
+                        usleep(50000);
+                        sendto(udp_socket, fileArr[i], strlen(fileArr[i]), 0, (struct sockaddr *)&udp_client_address[2], udp_client_len);
+                    }
+                    printf("The main server has sent the deploy request to server D.\n");
+
+                    int ack;
+                    recvfrom(udp_socket, &ack, sizeof(ack), 0, (struct sockaddr *)&udp_client_address[2], &udp_client_len);
+                    printf("The user %s's repository has been deployed at server D.\n", username);
+
+                    send(tcp_client_socket, &n, sizeof(n), 0);
+                    for(int i = 0; i < n; i++) {
+                        usleep(50000);
+                        send(tcp_client_socket, fileArr[i], strlen(fileArr[i]), 0);
+                        free(fileArr[i]);
+                    }
+                    free(fileArr);
+                }
                 else if(command_code == 4) {
                     printf("The main server has received a remove request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
                     
