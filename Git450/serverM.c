@@ -11,6 +11,23 @@
 #include <sys/wait.h>
 #include "serverM.h"
 
+Command* add_command(Command* logs, int* size, const char* username, const char* command, const char* target) {
+    logs = realloc(logs, (*size + 1) * sizeof(Command));
+    if (logs == NULL) {
+        perror("Failed to reallocate memory");
+        return NULL;
+    }
+
+    strcpy(logs[size].username, username);
+    strcpy(logs[size].command, command);
+    if(strcmp(target, "trash") == 0) strcpy(logs[size].target, "");
+    else strcpy(logs[size].target, target);
+
+    (*size)++;
+
+    return logs;
+}
+
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in udp_server_address;
@@ -202,18 +219,7 @@ int main() {
                 strcpy(target, buffer);
                 memset(buffer, 0, BUFFER_SIZE);
 
-                logs = realloc(logs, (cur_size + 1) * sizeof(Command));
-                if (logs == NULL) {
-                    perror("Failed to reallocate memory");
-                    return 1;
-                }
-
-                strcpy(logs[cur_size].username, username);
-                strcpy(logs[cur_size].command, commands[command_code]);
-                if(strcmp(target, "trash") == 0) strcpy(logs[cur_size].target, "");
-                else strcpy(logs[cur_size].target, target);
-
-                cur_size++;
+                logs = add_command(logs, &cur_size, username, commands[command_code], target);
 
                 if(command_code == 1) {
                     printf("The main server has received a lookup request from %s to lookup %s's repository using TCP over port %d.\n", username, target, serverM_TCP_PORT);
@@ -342,9 +348,11 @@ int main() {
                 else if(command_code == 5) {
                     printf("The main server has received a log request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
 
+                    int log_code = 0;
                     for(int i = 0; i < cur_size; i++) {
                         if(strcmp(logs[i].username, username) == 0) {
-                            printf("%d. %s %s\n", i, logs[i].command, logs[i].target);
+                            log_code++;
+                            printf("%d. %s %s\n", log_code, logs[i].command, logs[i].target);
                         }
                     }
 

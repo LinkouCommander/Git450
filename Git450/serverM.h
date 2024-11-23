@@ -16,8 +16,7 @@ typedef struct {
     char target[100];
 } Command;
 
-
-
+Command* add_command(Command* logs, int* size, const char* username, const char* command, const char* target);
 struct sockaddr_in udp_client_address[3];
 int udp_client_len = sizeof(udp_client_address[0]);
 int set_udp_socket();
