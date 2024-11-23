@@ -130,7 +130,7 @@ int main() {
             printf("Server M has sent authentication request to Server A\n");
 
             recvfrom(udp_socket, &authenticationCode, sizeof(authenticationCode), 0, (struct sockaddr *)&udp_client_address[0], (socklen_t*)&udp_client_len);
-            printf("The main server has received the response from server A using UDP over %d.\n", serverA_UDP_PORT);
+            printf("The main server has received the response from server A using UDP over %d.\n", serverM_UDP_PORT);
 
             send(tcp_client_socket, &authenticationCode, sizeof(authenticationCode), 0);
             printf("The main server has sent the response from server A to client using TCP over port %d.\n", serverM_TCP_PORT);
@@ -185,7 +185,6 @@ int main() {
             while(1) {
                 int command_code = 0;
                 char target[50];
-                char lookup[] = "lookup";
 
                 int debug_code;
                 if ((debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0)) <= 0) {

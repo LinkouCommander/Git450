@@ -51,7 +51,7 @@ int main() {
         perror("Can't open deployed.txt");
         exit(EXIT_FAILURE);
     }
-    fprintf(file, "UserName Filename\n");
+    // fprintf(file, "UserName Filename\n");
 
     fclose(file);
 
@@ -70,13 +70,13 @@ int main() {
 
         int n;
         recvfrom(serverD_socket, &n, sizeof(n), 0, (struct sockaddr*)&address, &addr_len);
-        recvfrom(serverD_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&address[1], &addr_len);
+        recvfrom(serverD_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&address, &addr_len);
         strcpy(username, buffer);
         memset(buffer, 0, BUFFER_SIZE);
         
         char **fileArr = malloc(n * sizeof(char*));
         for(int i = 0; i < n; i++) {
-            recvfrom(serverD_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&address[1], &addr_len);
+            recvfrom(serverD_socket, buffer, BUFFER_SIZE, 0, (struct sockaddr *)&address, &addr_len);
             fileArr[i] = strdup(buffer);
             memset(buffer, 0, BUFFER_SIZE);
             // printf("%s\n", fileArr[i]);
@@ -89,7 +89,7 @@ int main() {
         }
         free(fileArr);
         
-        printf("Server D has deployed the user %s's repository.", username);
-        sendto(serverR_socket, &n, sizeof(n), 0, (struct sockaddr*)&address, addr_len);
+        printf("Server D has deployed the user %s's repository.\n", username);
+        sendto(serverD_socket, &n, sizeof(n), 0, (struct sockaddr*)&address, addr_len);
     }
 }

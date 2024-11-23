@@ -128,6 +128,7 @@ void deploy_op(int sock, const char *clientname) {
 
     send(sock, &command_code, sizeof(command_code), 0);
     usleep(50000);
+    send(sock, "trash", strlen("trash"), 0);
     printf("%s sent a deploy request to the main server\n", clientname);
 
     int response_code;
@@ -248,7 +249,7 @@ int main(int argc, char *argv[]) {
                 push_op(sock, username, target);
             }
             else if(strcmp(command, "deploy") == 0) {
-                deploy(sock, username);
+                deploy_op(sock, username);
             }
             else if(strcmp(command, "remove") == 0) {
                 remove_op(sock, username, target);
