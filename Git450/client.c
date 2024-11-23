@@ -19,6 +19,7 @@ void read_command(char *command, char *target) {
         strcpy(command, "");
         strcpy(target, "");
     }
+    printf("\n");
 }
 
 void lookup_op(int sock, const char *clientname, char *target) {
@@ -62,7 +63,7 @@ void lookup_op(int sock, const char *clientname, char *target) {
 int file_exists(const char *filename) {
     FILE *file = fopen(filename, "r");
     if(file) {
-        fclose(filename);
+        fclose(file);
         return 1;
     }
     return 0;
@@ -78,7 +79,7 @@ void push_op(int sock, const char *clientname, const char *target) {
     }
 
     if(file_exists(target) == 0) {
-        printf("Error: Invalid file: %s", target);
+        printf("Error: Invalid file: %s\n", target);
         return;
     }
 
@@ -92,19 +93,24 @@ void push_op(int sock, const char *clientname, const char *target) {
         printf("%s pushed successfully\n", target);
     } 
     else {
-        printf("%s exists in %s's repository, do you want to overwrite (Y/N)?", target, clientname);
+        printf("%s exists in %s's repository, do you want to overwrite (Y/N)?\n", target, clientname);
         
         char overwrite_input;
         while(1) {
-            scanf("%c", &overwrite_input);
-            overwrite_input = tolower(overwrite_input);
+            char input[100];
+            if(fgets(input, sizeof(input), stdin)) {
+                input[strcspn(input, "\n")] = '\0';
+            }
 
-            if(overwrite_input == 'y' || overwrite_input == 'n') break;
+            if(strlen(input) > 1) continue;
+            overwrite_input = input[0];
+
+            if(overwrite_input == 'y' || overwrite_input == 'Y' || overwrite_input == 'n'|| overwrite_input == 'N') break;
             else printf("Invalid input, please try again.\n");
         }
 
         int overwrite_code;
-        if(overwrite_input == 'y') {
+        if(overwrite_input == 'y' || overwrite_input == 'Y') {
             overwrite_code = 1;
             printf("%s pushed successfully.\n", target);
         }

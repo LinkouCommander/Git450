@@ -188,7 +188,7 @@ int main() {
                 char lookup[] = "lookup";
 
                 int debug_code;
-                if (debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0) <= 0) {
+                if ((debug_code = recv(tcp_client_socket, &command_code, sizeof(command_code), 0)) <= 0) {
                     break;
                 }
 
@@ -228,6 +228,7 @@ int main() {
                         send(tcp_client_socket, fileArr[i], strlen(fileArr[i]), 0);
                         free(fileArr[i]);
                     }
+                    free(fileArr);
                     printf("The main server has sent the response to the client.\n");
                 }
                 else if(command_code == 2) {
@@ -245,7 +246,7 @@ int main() {
                     if(!response_code) {
                         printf("The main server has received the response from server R using UDP over %d\n", serverM_UDP_PORT);
                         send(tcp_client_socket, &response_code, sizeof(response_code), 0);
-                        printf("The main server has sent the response to the client.\n")
+                        printf("The main server has sent the response to the client.\n");
                     }
                     else {
                         printf("The main server has received the response from server R using UDP over %d, asking for overwrite confirmation\n", serverM_UDP_PORT);
@@ -253,7 +254,7 @@ int main() {
                         printf("The main server has sent the overwrite confirmation request to the client.\n");
 
                         int overwrite_code;
-                        if(debug_code = recv(tcp_client_socket, &overwrite_code, sizeof(overwrite_code), 0) <= 0) {
+                        if((debug_code = recv(tcp_client_socket, &overwrite_code, sizeof(overwrite_code), 0)) <= 0) {
                             int fail_code = -1;
                             sendto(udp_socket, &fail_code, sizeof(fail_code), 0, (struct sockaddr *)&udp_client_address[1], udp_client_len);
                             break;

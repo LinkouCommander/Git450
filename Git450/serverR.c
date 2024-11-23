@@ -15,10 +15,12 @@ void file_write(const char *username, const char *filename) {
     FILE *push_file = fopen("filenames.txt", "a");
     if(!push_file) {
         perror("Can't open filenames.txt");
-        return 1;
+        exit(EXIT_FAILURE);
     }
-    // fprintf(push_file, "%s %s\n", username, filename);
-    printf("%s %s\n", username, filename);
+    fprintf(push_file, "%s %s\n", username, filename);
+    // printf("%s %s\n", username, filename);
+
+    fclose(push_file);
 }
 
 int set_udp_socket() {
@@ -56,6 +58,7 @@ int main() {
 
     char **memberInfo = NULL;
     
+    char row[1];
     memset(row, 0, sizeof(row));
     fgets(row, sizeof(row), memberfile);
 
@@ -88,7 +91,7 @@ int main() {
         char **fileUser = NULL;
         char **fileInfo = NULL;
         
-        char row[1];
+        memset(row, 0, sizeof(row));
         fgets(row, sizeof(row), file);
 
         int file_size = 0;
@@ -147,7 +150,7 @@ int main() {
             printf("Server R has finished sending the response to the main server.\n");
         }
         else if(command_code == 2) {
-            printf("Server R has received a push request from the main server");
+            printf("Server R has received a push request from the main server\n");
 
             char client_username[100];
             memset(&client_username, 0, sizeof(client_username));
