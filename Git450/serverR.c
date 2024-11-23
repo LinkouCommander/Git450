@@ -23,15 +23,14 @@ void file_write(const char* username, const char* filename) {
     fclose(push_file);
 }
 
-void delete_line(const char **fileUser, const char **fileInfo, const int size, const char* row, int line_to_delete) {
+void delete_line(char **fileUser, char **fileInfo, const int size, const char* header, int line_to_delete) {
     FILE* temp = fopen("temp.txt", "w");
     if(!temp) {
         perror("Can't open temp.txt");
         exit(EXIT_FAILURE);
     }
 
-    fput(row, temp);
-    fprintf(temp, "\n");
+    fprintf(temp, "%s\n", header);
     for(int i = 0; i < size; i++) {
         if(i != line_to_delete) {
             fprintf(temp, "%s %s\n", fileUser[i], fileInfo[i]);
@@ -40,14 +39,14 @@ void delete_line(const char **fileUser, const char **fileInfo, const int size, c
 
     fclose(temp);
 
-    // if(remove("filename.txt") != 0) {
-    //     perror("Error deleting original file");
-    //     return;
-    // }
-    // if(rename("temp.txt", "filename.txt") != 0) {
-    //     perror("Error renaming temporary file");
-    //     return;
-    // }
+    if(remove("filenames.txt") != 0) {
+        perror("Error deleting original file");
+        return;
+    }
+    if(rename("temp.txt", "filenames.txt") != 0) {
+        perror("Error renaming temporary file");
+        return;
+    }
 }
 
 int set_udp_socket() {
@@ -85,9 +84,10 @@ int main() {
 
     char **memberInfo = NULL;
     
-    char row[1];
-    memset(row, 0, sizeof(row));
-    fgets(row, sizeof(row), memberfile);
+    char header[100];
+    memset(header, 0, sizeof(header));
+    fgets(header, sizeof(header), memberfile);
+    header[strcspn(header, "\n")] = 0;
 
     int member_size = 0;
     while(fscanf(memberfile, "%s %s", buffer1, buffer2) != EOF) {
@@ -118,8 +118,9 @@ int main() {
         char **fileUser = NULL;
         char **fileInfo = NULL;
         
-        memset(row, 0, sizeof(row));
-        fgets(row, sizeof(row), file);
+        memset(header, 0, sizeof(header));
+        fgets(header, sizeof(header), file);
+        header[strcspn(header, "\n")] = 0;
 
         int file_size = 0;
         while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
@@ -225,21 +226,22 @@ int main() {
             memset(&client_filename, 0, sizeof(client_filename));
             recvfrom(serverR_socket, client_filename, sizeof(client_filename), 0, (struct sockaddr*)&address, &addr_len);
 
-            int response_code = 0;
+            int response_code = 1;
             int line_to_delete;
             for(int i = 0; i < file_size; i++) {
                 if(strcmp(client_username, fileUser[i]) == 0 && strcmp(client_filename, fileInfo[i]) == 0) {
-                    response_code = 1;
+                    response_code = 0;
                     line_to_delete = i;
                     break;
                 }
             }
-
+            
+            // printf("response code = %d\n", response_code);
             if(response_code == 1) {
                 sendto(serverR_socket, &response_code, sizeof(response_code), 0, (struct sockaddr*)&address, addr_len);
                 continue;
             }
-            delete_line(fileUser, fileInfo, file_size, row, line_to_delete);
+            delete_line(fileUser, fileInfo, file_size, header, line_to_delete);
             sendto(serverR_socket, &response_code, sizeof(response_code), 0, (struct sockaddr*)&address, addr_len);
         }
 

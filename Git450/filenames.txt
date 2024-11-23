@@ -47,7 +47,6 @@ IvyJohnson202 EE450ProjectFile_302
 HannahMartinez566 EE450ProjectFile_239
 FrankJones455 EE450ProjectFile_255
 CharlieMartinez458 EE450ProjectFile_731
-FrankJones422 EE450ProjectFile_531
 IvySmith320 EE450ProjectFile_841
 IvySmith320 EE450ProjectFile_436
 IvyMiller293 EE450ProjectFile_436
@@ -153,6 +152,7 @@ HannahRodriguez101 EE450ProjectFile_422
 HannahRodriguez101 EE450ProjectFile_723
 BobDavis64 EE450ProjectFile_220
 BobDavis64 EE450ProjectFile_342
-BobDavis64 JJinhere
 CharlieMartinez884 JJinhere
 GraceGarcia831 JJinhere
+BobDavis64 ^^^$$5
+BobDavis64 %s"\n"

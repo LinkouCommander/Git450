@@ -8,7 +8,7 @@
 #define BUFFER_SIZE 1024
 
 void file_write(const char *username, const char *filename);
-void delete_line(const char **fileUser, const char **fileInfo, const int size, const char* row, int line_to_delete);
+void delete_line(char **fileUser, char **fileInfo, const int size, const char* row, int line_to_delete);
 int set_udp_socket();
 
 #endif

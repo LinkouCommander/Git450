@@ -69,8 +69,9 @@ int main() {
     char **memberInfo = NULL;
     char **passwordInfo = NULL;
     
-    char row[1];
-    fgets(row, sizeof(row), file);
+    char header[100];
+    fgets(header, sizeof(header), file);
+    header[strcspn(header, "\n")] = 0;
 
     int member_size = 0;
     while(fscanf(file, "%s %s", buffer1, buffer2) != EOF) {
