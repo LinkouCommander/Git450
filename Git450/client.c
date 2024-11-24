@@ -186,19 +186,27 @@ void log_op(int sock, const char *clientname) {
 
 int main(int argc, char *argv[]) {
     int sock = 0;
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in address;
     char buffer[BUFFER_SIZE] = {0};
     
     // build up socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     
     // setup server address and port number
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(serverM_TCP_PORT);
-    inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = inet_addr("127.0.0.1");
+    address.sin_port = 0;
+    // inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
     
-    // connsct server
-    connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    // connect server
+    connect(sock, (struct sockaddr*)&address, sizeof(address));
+
+    if (getsockname(sock, (struct sockaddr*)&address, &address) == -1) {
+        perror("Get socket name failed");
+        close(sock);
+        exit(EXIT_FAILURE);
+    }
+    printf("PORT: %d", ntohs(address.sin_port));
 
     printf("The client is up and running.\n");
     

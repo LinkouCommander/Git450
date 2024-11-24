@@ -39,7 +39,7 @@ int set_udp_socket() {
     memset(&udp_server_address, 0, sizeof(udp_server_address));
 
     udp_server_address.sin_family = AF_INET; // IPv4
-    udp_server_address.sin_addr.s_addr = INADDR_ANY;
+    udp_server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
     udp_server_address.sin_port = htons(serverM_UDP_PORT);
 
     if (bind(sockfd, (const struct sockaddr *)&udp_server_address, sizeof(udp_server_address)) < 0) {
@@ -370,7 +370,7 @@ int main() {
                         memset(buffer, 0, BUFFER_SIZE);
                     }
                     printf("The main server has sent the log response to the client.\n");
-                    
+
                     free(historyLog);
                 }
             }
