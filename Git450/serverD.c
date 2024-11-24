@@ -46,15 +46,6 @@ int set_udp_socket() {
 }
 
 int main() {
-    FILE* file = fopen("deployed.txt", "a");
-    if(!file) {
-        perror("Can't open deployed.txt");
-        exit(EXIT_FAILURE);
-    }
-    // fprintf(file, "UserName Filename\n");
-
-    fclose(file);
-
     // setup socket
     int serverD_socket = set_udp_socket();
     struct sockaddr_in address;

@@ -369,6 +369,8 @@ int main() {
                         send(tcp_client_socket, buffer, strlen(buffer), 0);
                         memset(buffer, 0, BUFFER_SIZE);
                     }
+                    printf("The main server has sent the log response to the client.\n");
+                    
                     free(historyLog);
                 }
             }

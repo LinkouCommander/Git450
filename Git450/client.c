@@ -185,26 +185,24 @@ void log_op(int sock, const char *clientname) {
 }
 
 int main(int argc, char *argv[]) {
-    // printf("%s\n", argv[1]);
-    // printf("%s\n", argv[2]);
     int sock = 0;
     struct sockaddr_in serv_addr;
     char buffer[BUFFER_SIZE] = {0};
     
-    // 創建 socket
+    // build up socket
     sock = socket(AF_INET, SOCK_STREAM, 0);
     
-    // 設置 server 地址和端口
+    // setup server address and port number
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(serverM_TCP_PORT);
     inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr);
     
-    // 連接 server
+    // connsct server
     connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
 
     printf("The client is up and running.\n");
     
-    // 發送資料
+    // read command input
     const char* username = " ";
     const char* password = " ";
 
@@ -212,6 +210,8 @@ int main(int argc, char *argv[]) {
     // printf("%s\n", username);
     if(argc > 2) password = argv[2];
     // printf("%s\n", password);
+
+    // send authentication request
     send(sock, username, strlen(username), 0);
     usleep(50000);
     send(sock, password, strlen(password), 0);

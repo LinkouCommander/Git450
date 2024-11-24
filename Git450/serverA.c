@@ -115,9 +115,9 @@ int main() {
         }
 
         if(idx != -1) {
-            char *decoded_client_password = encoder(client_password);
+            char *encoded_client_password = encoder(client_password);
             // printf("Decoded Password: %s\n", decoded_client_password);
-            if(strcmp(decoded_client_password, passwordInfo[idx]) == 0) {
+            if(strcmp(encoded_client_password, passwordInfo[idx]) == 0) {
                 authenticationCode = 2;
             }
         }
