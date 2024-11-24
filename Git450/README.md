@@ -1,5 +1,5 @@
 # EE450 Socket Programming Project - Git450
-**6024588048 Chih-Cheng Hsieh**
+**Chih-Cheng Hsieh 6024588048**
 
 ## Overview
 This project implements a simplified version of a version control platform similar to GitHub using C. After authentication, users can perform various operations, including:
@@ -18,12 +18,13 @@ This project implements a simplified version of a version control platform simil
 * **Deployment Server (serverD):** A backend server that maintains a list of deployed documents.
 
 ## Changes to On-Screen Messages
-* **Client**
+* **Client**\
 `Wrong command`: Member client enters invalid command\
 `Invalid input, please try again.`: Enter a response other than Y/N when prompted for overwrite confirmation\
 `The remove request failed.`: The confirmation message received when there are no target files to delete in the system
+`Get socket name failed`: Debug code for getting socket name\
 
-* **serverM**
+* **serverM**\
 `Failed to allocate memory`: Debug code for memory allocation\
 `Failed to reallocate memory`: Debug code for memory reallocation\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
@@ -33,12 +34,12 @@ This project implements a simplified version of a version control platform simil
 `Listen failed`: Debug code for TCP Listen\
 `TCP Accept failed`: Debug code for TCP Accept
 
-* **serverA**
+* **serverA**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
 `UDP Bind failed`: Debug code for UDP Bind\
 `Can't open members.txt`: Debug code for open members.txt\
 
-* **serverR**
+* **serverR**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
 `UDP Bind failed`: Debug code for UDP Bind\
 `Can't open filenames.txt`: Debug code for opening filenames.txt\
@@ -47,7 +48,7 @@ This project implements a simplified version of a version control platform simil
 `Error renaming temporary file`: Debug code for renaming temp.txt\
 `Can't open members.txt`: Debug code for open members.txt
 
-* **serverD**
+* **serverD**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
 `UDP Bind failed`: Debug code for UDP Bind\
 `Can't open deployed.txt`: Debug code for opening deployed.txt\
