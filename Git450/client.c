@@ -22,7 +22,7 @@ void read_command(char *command, char *target) {
     printf("\n");
 }
 
-void lookup_op(int sock, const char *clientname, char *target) {
+void lookup_op(int sock, const int PORT, const char *clientname, char *target) {
     char lookup_buffer[BUFFER_SIZE] = {0};
     int command_code = 1;
 
@@ -38,7 +38,7 @@ void lookup_op(int sock, const char *clientname, char *target) {
 
     int response_code;
     recv(sock, &response_code, sizeof(response_code), 0);
-    printf("The client received the response from the main server using TCP over port %d\n\n", serverM_TCP_PORT);
+    printf("The client received the response from the main server using TCP over port %d\n\n", PORT);
     // printf("n = %d\n", n);
 
     if(response_code < 0) {
@@ -69,7 +69,7 @@ int file_exists(const char *filename) {
     return 0;
 }
 
-void push_op(int sock, const char *clientname, const char *target) {
+void push_op(int sock, const int PORT, const char *clientname, const char *target) {
     char push_buffer[BUFFER_SIZE] = {0};
     int command_code = 2;
 
@@ -122,7 +122,7 @@ void push_op(int sock, const char *clientname, const char *target) {
     }
 }
 
-void deploy_op(int sock, const char *clientname) {
+void deploy_op(int sock, const int PORT, const char *clientname) {
     char deploy_buffer[BUFFER_SIZE] = {0};
     int command_code = 3;
 
@@ -133,7 +133,7 @@ void deploy_op(int sock, const char *clientname) {
 
     int response_code;
     recv(sock, &response_code, sizeof(response_code), 0);
-    printf("The client received the response from the main server using TCP over port %d. The following files in his/her repository have been deployed.\n\n", serverM_TCP_PORT);
+    printf("The client received the response from the main server using TCP over port %d. The following files in his/her repository have been deployed.\n\n", PORT);
         
     int n = response_code;
     for(int i = 0; i < n; i++) {
@@ -143,7 +143,7 @@ void deploy_op(int sock, const char *clientname) {
     }
 }
 
-void remove_op(int sock, const char *clientname, const char *target) {
+void remove_op(int sock, const int PORT, const char *clientname, const char *target) {
     int command_code = 4;
     
     if(strlen(target) == 0) return;
@@ -163,7 +163,7 @@ void remove_op(int sock, const char *clientname, const char *target) {
     }
 }
 
-void log_op(int sock, const char *clientname) {
+void log_op(int sock, const int PORT, const char *clientname) {
     char log_buffer[BUFFER_SIZE] = {0};
     int command_code = 5;
 
@@ -174,7 +174,7 @@ void log_op(int sock, const char *clientname) {
 
     int log_code;
     recv(sock, &log_code, sizeof(log_code), 0);
-    printf("The client received the response from the main server using TCP over port %d.\n\n", serverM_TCP_PORT);
+    printf("The client received the response from the main server using TCP over port %d.\n\n", PORT);
         
     int n = log_code;
     for(int i = 0; i < n; i++) {
@@ -187,6 +187,7 @@ void log_op(int sock, const char *clientname) {
 int main(int argc, char *argv[]) {
     int sock = 0;
     struct sockaddr_in address;
+    socklen_t addr_len = sizeof(address);
     char buffer[BUFFER_SIZE] = {0};
     
     // build up socket
@@ -195,18 +196,19 @@ int main(int argc, char *argv[]) {
     // setup server address and port number
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = 0;
+    address.sin_port = htons(serverM_TCP_PORT);
     // inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
     
     // connect server
     connect(sock, (struct sockaddr*)&address, sizeof(address));
 
-    if (getsockname(sock, (struct sockaddr*)&address, &address) == -1) {
+    if (getsockname(sock, (struct sockaddr*)&address, &addr_len) == -1) {
         perror("Get socket name failed");
         close(sock);
         exit(EXIT_FAILURE);
     }
-    printf("PORT: %d", ntohs(address.sin_port));
+    const int client_TCP_PORT = ntohs(address.sin_port);
+    // printf("PORT: %d\n", client_TCP_PORT);
 
     printf("The client is up and running.\n");
     
@@ -246,7 +248,7 @@ int main(int argc, char *argv[]) {
             // printf("%s\n", target);
 
             if(strcmp(command, "lookup") == 0) {
-                lookup_op(sock, "Guest", target);
+                lookup_op(sock, client_TCP_PORT, "Guest", target);
             }
             else {
                 printf("Guests can only use the lookup command\n");
@@ -274,19 +276,19 @@ int main(int argc, char *argv[]) {
                     strcpy(target, username);
                     printf("Username is not specified. Will lookup %s.\n", username);
                 }
-                lookup_op(sock, username, target);
+                lookup_op(sock, client_TCP_PORT, username, target);
             }
             else if(strcmp(command, "push") == 0) {
-                push_op(sock, username, target);
+                push_op(sock, client_TCP_PORT, username, target);
             }
             else if(strcmp(command, "deploy") == 0) {
-                deploy_op(sock, username);
+                deploy_op(sock, client_TCP_PORT, username);
             }
             else if(strcmp(command, "remove") == 0) {
-                remove_op(sock, username, target);
+                remove_op(sock, client_TCP_PORT, username, target);
             }
             else if(strcmp(command, "log") == 0) {
-                log_op(sock, username);
+                log_op(sock, client_TCP_PORT, username);
             }
             else {
                 printf("Wrong command\n");
