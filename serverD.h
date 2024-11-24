@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define serverR_UDP_PORT 23048
+#define serverD_UDP_PORT 23048
 #define BUFFER_SIZE 1024
 
 void file_write(const char *username, const char *filename);

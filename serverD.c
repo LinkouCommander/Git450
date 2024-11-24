@@ -34,7 +34,7 @@ int set_udp_socket() {
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET; // IPv4
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(serverR_UDP_PORT);
+    address.sin_port = htons(serverD_UDP_PORT);
     
     if (bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
         perror("Socket Bind failed");
@@ -51,7 +51,7 @@ int main() {
     struct sockaddr_in address;
     int addr_len = sizeof(address);
 
-    printf("Server D is up and running using UDP on port %d.\n", serverR_UDP_PORT);
+    printf("Server D is up and running using UDP on port %d.\n", serverD_UDP_PORT);
 
     char buffer[BUFFER_SIZE] = {0};
     char username[100];
