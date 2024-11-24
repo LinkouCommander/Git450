@@ -145,6 +145,8 @@ void deploy_op(int sock, const char *clientname) {
 
 void remove_op(int sock, const char *clientname, const char *target) {
     int command_code = 4;
+    
+    if(strlen(target) == 0) return;
 
     send(sock, &command_code, sizeof(command_code), 0);
     usleep(50000);
@@ -162,6 +164,7 @@ void remove_op(int sock, const char *clientname, const char *target) {
 }
 
 void log_op(int sock, const char *clientname) {
+    char log_buffer[BUFFER_SIZE] = {0};
     int command_code = 5;
 
     send(sock, &command_code, sizeof(command_code), 0);
@@ -169,8 +172,16 @@ void log_op(int sock, const char *clientname) {
     send(sock, "trash", strlen("trash"), 0);
     printf("%s sent a log request to the main server\n", clientname);
 
-    // int response_code;
-    // recv(sock, &response_code, sizeof(response_code), 0);
+    int log_code;
+    recv(sock, &log_code, sizeof(log_code), 0);
+    printf("The client received the response from the main server using TCP over port %d.\n\n", serverM_TCP_PORT);
+        
+    int n = log_code;
+    for(int i = 0; i < n; i++) {
+        recv(sock, &log_buffer, BUFFER_SIZE, 0);
+        printf("%d. %s\n", i + 1, log_buffer);
+        memset(log_buffer, 0, BUFFER_SIZE);
+    }
 }
 
 int main(int argc, char *argv[]) {

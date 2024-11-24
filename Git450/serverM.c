@@ -18,10 +18,10 @@ Command* add_command(Command* logs, int* size, const char* username, const char*
         return NULL;
     }
 
-    strcpy(logs[size].username, username);
-    strcpy(logs[size].command, command);
-    if(strcmp(target, "trash") == 0) strcpy(logs[size].target, "");
-    else strcpy(logs[size].target, target);
+    strcpy(logs[*size].username, username);
+    strcpy(logs[*size].command, command);
+    if(strcmp(target, "trash") == 0) strcpy(logs[*size].target, "");
+    else strcpy(logs[*size].target, target);
 
     (*size)++;
 
@@ -347,15 +347,29 @@ int main() {
                 }
                 else if(command_code == 5) {
                     printf("The main server has received a log request from %s, using TCP over port %d.\n", username, serverM_TCP_PORT);
-
+                    
                     int log_code = 0;
+                    Command *historyLog = malloc(log_code * sizeof(Command));
+                    if(!historyLog) {
+                        perror("Failed to allocate memory");
+                        return 1;
+                    }
+
                     for(int i = 0; i < cur_size; i++) {
                         if(strcmp(logs[i].username, username) == 0) {
-                            log_code++;
-                            printf("%d. %s %s\n", log_code, logs[i].command, logs[i].target);
+                            historyLog = add_command(historyLog, &log_code, username, logs[i].command, logs[i].target);
+                            // printf("%d. %s %s\n", log_code, logs[i].command, logs[i].target);
                         }
                     }
 
+                    send(tcp_client_socket, &log_code, sizeof(log_code), 0);
+                    for(int i = 0; i < log_code; i++) {
+                        usleep(50000);
+                        sprintf(buffer, "%s %s", historyLog[i].command, historyLog[i].target);
+                        send(tcp_client_socket, buffer, strlen(buffer), 0);
+                        memset(buffer, 0, BUFFER_SIZE);
+                    }
+                    free(historyLog);
                 }
             }
         }
@@ -363,6 +377,8 @@ int main() {
 
         close(tcp_client_socket);
     }
+    free(logs);
+
     close(udp_socket);
     close(tcp_server_socket);
 }
