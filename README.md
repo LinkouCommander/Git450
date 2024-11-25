@@ -1,5 +1,4 @@
-# EE450 Socket Programming Project - Git450
-**Chih-Cheng Hsieh 6024588048**
+# Socket Programming Project - Git450
 
 ## Overview
 This project implements a simplified version of a version control platform similar to GitHub using C. After authentication, users can perform various operations, including:
