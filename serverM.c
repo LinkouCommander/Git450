@@ -28,6 +28,18 @@ Command* add_command(Command* logs, int* size, const char* username, const char*
     return logs;
 }
 
+void log_write(const char* username, const char* command, const char* target) {
+    FILE* push_file = fopen("log.txt", "a");
+    if(!push_file) {
+        perror("Can't open log.txt");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(push_file, "%s %s %s\n", username, command, target);
+    // printf("%s %s\n", username, filename);
+
+    fclose(push_file);
+}
+
 int set_udp_socket() {
     int sockfd;
     struct sockaddr_in udp_server_address;
@@ -129,6 +141,7 @@ int main() {
         }
         else if(pid == 0) {
             close(tcp_server_socket);
+
             char buffer[BUFFER_SIZE] = {0};
 
             char username[100], password[100];
@@ -228,7 +241,7 @@ int main() {
                     strcpy(target, buffer);
                     memset(buffer, 0, BUFFER_SIZE);
 
-                    logs = add_command(logs, &cur_size, username, commands[command_code], target);
+                    log_write(username, commands[command_code], target);
 
                     if(command_code == 1) {
                         printf("The main server has received a lookup request from %s to lookup %s's repository using TCP over port %d.\n", username, target, serverM_TCP_PORT);
@@ -364,9 +377,19 @@ int main() {
                             return 1;
                         }
 
-                        for(int i = 0; i < cur_size; i++) {
-                            if(strcmp(logs[i].username, username) == 0) {
-                                historyLog = add_command(historyLog, &log_code, username, logs[i].command, logs[i].target);
+                        FILE* logfile = fopen("log.txt", "r");
+                        if(!logfile) {
+                            perror("Can't open log.txt");
+                            return 1;
+                        }
+
+                        char buffer1[BUFFER_SIZE] = {0};
+                        char buffer2[BUFFER_SIZE] = {0};
+                        char buffer3[BUFFER_SIZE] = {0};
+
+                        while(fscanf(logfile, "%s %s %s", buffer1, buffer2, buffer3) != EOF) {
+                            if(strcmp(buffer1, username) == 0) {
+                                historyLog = add_command(historyLog, &log_code, buffer1, buffer2, buffer3);
                                 // printf("%d. %s %s\n", log_code, logs[i].command, logs[i].target);
                             }
                         }

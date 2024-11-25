@@ -5,6 +5,7 @@
         "type_traits": "c",
         "stdlib.h": "c",
         "typeinfo": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "cmath": "c"
     }
 }

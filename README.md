@@ -17,12 +17,15 @@ This project implements a simplified version of a version control platform simil
 * **Repository Server (serverR):** A backend server that maintains the document list of members, allowing users to view, upload, and delete documents.
 * **Deployment Server (serverD):** A backend server that maintains a list of deployed documents.
 
+## Idiosyncrasy
+* To implement the log function, a `log.txt` file will be created to store the history of commands executed by members.
+
 ## Changes to On-Screen Messages
 * **Client**\
 `Wrong command`: Member client enters invalid command\
 `Invalid input, please try again.`: Enter a response other than Y/N when prompted for overwrite confirmation\
-`The remove request failed.`: The confirmation message received when there are no target files to delete in the system
-`Get socket name failed`: Debug code for getting socket name\
+`The remove request failed.`: The confirmation message received when there are no target files to delete in the system\
+`Get socket name failed`: Debug code for getting socket name
 
 * **serverM**\
 `Failed to allocate memory`: Debug code for memory allocation\
@@ -33,11 +36,12 @@ This project implements a simplified version of a version control platform simil
 `TCP Bind failed`: Debug code for TCP Bind\
 `Listen failed`: Debug code for TCP Listen\
 `TCP Accept failed`: Debug code for TCP Accept
+`Can't open log.txt`: Debug code for open log.txt
 
 * **serverA**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
 `UDP Bind failed`: Debug code for UDP Bind\
-`Can't open members.txt`: Debug code for open members.txt\
+`Can't open members.txt`: Debug code for open members.txt
 
 * **serverR**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
@@ -51,7 +55,7 @@ This project implements a simplified version of a version control platform simil
 * **serverD**\
 `UDP Socket creation failed`: Debug code for UDP Socket creation\
 `UDP Bind failed`: Debug code for UDP Bind\
-`Can't open deployed.txt`: Debug code for opening deployed.txt\
+`Can't open deployed.txt`: Debug code for opening deployed.txt
 
 ## Reused Code
 * **Socket Setup:** https://beej-zhtw.netdpi.net/client-server_basic
