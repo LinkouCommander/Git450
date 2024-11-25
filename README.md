@@ -3,25 +3,23 @@
 
 ## Overview
 This project implements a simplified version of a version control platform similar to GitHub using C. After authentication, users can perform various operations, including:
-
 * **Lookup:** View documents within a specific user's repository.
 * **Push:** Upload documents to server.
 * **Deploy:** Retrieve all documents of the user and deploy them on server.
 * **Remove:** Delete existing documents from server.
-* **Log:** View the user's history operations.\
+* **Log:** View the user's history operations.
 
-In addition, there are two types of users:\
-
+In addition, there are two types of users:
 * **Members:** Members have full access to the platform's functionalities. They can log in to their account to manage files stored on the server and view their operation history.
 * **Guests:** Guests have limited access to the platform. They can only look up the members' documents.
 
 ## System Architecture
-The client (Guest or Member) connects to the Main Server via TCP protocol, while the three backend servers communicate with the Main Server using UDP protocol.
-![Example Image](img/1.png)
+The client (Guest or Member) connects to the Main Server via TCP protocol, while the three backend servers communicate with the Main Server using UDP protocol.\
+　　　　　　　　　　![](img/1.png)
 * **Client:** A user interface for command input, response display, and filtering invalid commands.
 * **Main Server (serverM):** A central server that receives commands from the client, dispatches tasks to the appropriate backend servers, identifies guest users, and records each member's command history.
 * **Authentication Server (serverA):** A backend server that verifies user membership using `members.txt` and handles password encryption.
-* **Repository Server (serverR):** A backend server that maintains the document list of members (`filenames.txt`), allowing users to view, upload, and delete documents.
+* **Repository Server (serverR):** A backend server that maintains the document list of members `filenames.txt`, allowing users to view, upload, and delete documents.
 * **Deployment Server (serverD):** A backend server that maintains a list of deployed documents .
 
 ## Features
